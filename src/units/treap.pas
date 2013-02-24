@@ -9,7 +9,6 @@ type
     const
       MAX_PRIORITY = $7FFFFFFF;
     type
-      Traverser = function(Key: Tkey; Value: TValue): Boolean of object;
       PNode = ^TNode;
       TNode = record
         Key: TKey;
@@ -32,7 +31,7 @@ type
       function Compare({%H-}Key: TKey; Node: PNode): Integer;
     protected
       function Traverse({%H-}Key: TKey; {%H-}Value: TValue; {%H-}UserData: Pointer): Boolean; virtual;
-      procedure Dispose({%H-}Value: TValue); virtual;
+      procedure OnDispose({%H-}Value: TValue); virtual;
     public
       property Count: Integer read GetCount;
       function Insert(Key: TKey; Value: TValue): Boolean;
@@ -90,8 +89,8 @@ begin
         if Node <> NullNode then
           Node := DeleteNode(Key, Node)
         else begin
-          Dispose(Node^.Left^.Value);
-          System.Dispose(Node^.Left);
+          OnDispose(Node^.Left^.Value);
+          Dispose(Node^.Left);
           Node^.Left := NullNode;
           Altered := True;
           Dec(FCount);
@@ -224,7 +223,7 @@ begin
   Result := True;
 end;
 
-procedure TTreap.Dispose(Value: TValue);
+procedure TTreap.OnDispose(Value: TValue);
 begin
 end;
 

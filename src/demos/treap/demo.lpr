@@ -8,7 +8,7 @@ type
   THistogram = class(specialize TTreap<Char, Integer>)
   protected
     function Traverse(Key: Char; Value: Integer; UserData: Pointer): Boolean; override;
-    procedure Dispose(Value: Integer); override;
+    procedure OnDispose(Value: Integer); override;
   public
     MKey: Char;
     Max: Integer;
@@ -31,7 +31,7 @@ begin
   Result := True;
 end;
 
-procedure THistogram.Dispose(Value: Integer);
+procedure THistogram.OnDispose(Value: Integer);
 begin
   WriteLn('Now disposing: ' + IntToStr(Value));
 end;
