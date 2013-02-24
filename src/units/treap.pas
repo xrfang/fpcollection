@@ -27,12 +27,12 @@ type
       function RightRotate(Node: PNode): PNode;
       function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
       function DeleteNode(Key: TKey; Node: PNode): PNode;
-      procedure TraverseNode(Node: PNode; dir: Integer);
+      procedure TraverseNode(Node: PNode; dir: Integer; UserData: Pointer);
       procedure ClearNode(Node: PNode);
-      function Compare(Key: TKey; Node: PNode): Integer;
+      function Compare({%H-}Key: TKey; Node: PNode): Integer;
     protected
-      function Traverse(Key: TKey; Value: TValue): Boolean; virtual;
-      procedure Dispose(Value: TValue); virtual;
+      function Traverse({%H-}Key: TKey; {%H-}Value: TValue; {%H-}UserData: Pointer): Boolean; virtual;
+      procedure Dispose({%H-}Value: TValue); virtual;
     public
       property Count: Integer read GetCount;
       function Insert(Key: TKey; Value: TValue): Boolean;
@@ -41,7 +41,7 @@ type
       procedure Clear;
       constructor Create; virtual;
       destructor Destroy; override;
-      procedure Walk(dir: Integer = 0); //default Walk Ascendingly
+      procedure Walk(dir: Integer = 0; UserData: Pointer = nil);
   end;
 
 implementation
@@ -104,17 +104,17 @@ begin
   Result := Node;
 end;
 
-procedure TTreap.TraverseNode(Node: PNode; dir: Integer);
+procedure TTreap.TraverseNode(Node: PNode; dir: Integer; UserData: Pointer);
 begin
   if (not GoOn) or (Node = NullNode) then Exit;
   if dir = 0 then begin
-    TraverseNode(Node^.Left, dir);
-    if GoOn then GoOn := Traverse(Node^.Key, Node^.Value);
-    TraverseNode(Node^.Right, dir);
+    TraverseNode(Node^.Left, dir, UserData);
+    if GoOn then GoOn := Traverse(Node^.Key, Node^.Value, UserData);
+    TraverseNode(Node^.Right, dir, UserData);
   end else begin
-    TraverseNode(Node^.Right, dir);
-    if GoOn then GoOn := Traverse(Node^.Key, Node^.Value);
-    TraverseNode(Node^.Left, dir);
+    TraverseNode(Node^.Right, dir, UserData);
+    if GoOn then GoOn := Traverse(Node^.Key, Node^.Value, UserData);
+    TraverseNode(Node^.Left, dir, UserData);
   end;
 end;
 
@@ -166,10 +166,10 @@ begin
   Clear;
 end;
 
-procedure TTreap.Walk(dir: Integer);
+procedure TTreap.Walk(dir: Integer; UserData: Pointer);
 begin
   GoOn := True;
-  TraverseNode(RootNode, dir);
+  TraverseNode(RootNode, dir, UserData);
 end;
 
 function TTreap.Insert(Key: TKey; Value: TValue): Boolean;
@@ -219,7 +219,7 @@ begin
     Result := 0;
 end;
 
-function TTreap.Traverse(Key: TKey; Value: TValue): Boolean;
+function TTreap.Traverse(Key: TKey; Value: TValue; UserData: Pointer): Boolean;
 begin
   Result := True;
 end;
