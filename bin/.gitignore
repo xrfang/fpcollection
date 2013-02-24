@@ -1,0 +1,5 @@
+# This directory is for binary output of demos. All files under this
+# directory are not version controlled.
+*
+# Except this file
+!.gitignore
