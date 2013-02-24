@@ -7,7 +7,7 @@ type
 
   THistogram = class(specialize TTreap<Char, Integer>)
   protected
-    function Traverse(Key: Char; Value: Integer; UserData: Pointer): Boolean; override;
+    function Traverse(Key: Char; Value: Integer): Boolean; override;
     procedure OnDispose(Value: Integer); override;
   public
     MKey: Char;
@@ -21,7 +21,7 @@ var
 
 { THistogram }
 
-function THistogram.Traverse(Key: Char; Value: Integer; UserData: Pointer): Boolean;
+function THistogram.Traverse(Key: Char; Value: Integer): Boolean;
 begin
   if Value > Max then begin
     MKey := Key;
