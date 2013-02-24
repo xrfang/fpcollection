@@ -9,6 +9,7 @@ type
   protected
     function Traverse(Key: Char; Value: Integer): Boolean; override;
     procedure OnDispose(Value: Integer); override;
+    function OnInsert(Key: TKey; Value: TValue; IsNew: Boolean): Boolean; override;
   public
     MKey: Char;
     Max: Integer;
@@ -34,6 +35,13 @@ end;
 procedure THistogram.OnDispose(Value: Integer);
 begin
   WriteLn('Now disposing: ' + IntToStr(Value));
+end;
+
+function THistogram.OnInsert(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
+begin
+  Result := (not IsNew) or (Value mod 2 = 0);
+  if not Result then
+    WriteLn(Format('Assigning odd number %d to %s is forbidden', [Value, Key]));
 end;
 
 constructor THistogram.Create;

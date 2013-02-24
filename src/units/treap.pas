@@ -32,6 +32,7 @@ type
     protected
       function Traverse({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
       procedure OnDispose({%H-}Value: TValue); virtual;
+      function OnInsert({%H-}Key: TKey; {%H-}Value: TValue; {%H-}IsNew: Boolean): Boolean; virtual;
     public
       property Count: Integer read GetCount;
       function Insert(Key: TKey; Value: TValue): Boolean;
@@ -48,19 +49,21 @@ implementation
 function TTreap.InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
 begin
   if Node = NullNode then begin
-    New(Node);
-    Node^.Key := Key;
-    Node^.Value := Value;
-    Node^.Priority := Random(MAX_PRIORITY);
-    Node^.Left := NullNode;
-    Node^.Right := NullNode;
-    Altered := True;
-    Inc(FCount);
+    if OnInsert(Key, Value, True) then begin
+      New(Node);
+      Node^.Key := Key;
+      Node^.Value := Value;
+      Node^.Priority := Random(MAX_PRIORITY);
+      Node^.Left := NullNode;
+      Node^.Right := NullNode;
+      Altered := True;
+      Inc(FCount);
+    end;
   end else begin
     case Compare(Key, Node) of
       0: begin
         Altered := Node^.Value <> Value;
-        Node^.Value := Value;
+        if Altered and OnInsert(Key, Value, False) then Node^.Value := Value;
       end;
       1: begin
         Node^.Right := InsertNode(Key, Value, Node^.Right);
@@ -225,6 +228,11 @@ end;
 
 procedure TTreap.OnDispose(Value: TValue);
 begin
+end;
+
+function TTreap.OnInsert(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
+begin
+  Result := True;
 end;
 
 end.
