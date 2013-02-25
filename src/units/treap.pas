@@ -11,6 +11,7 @@ type
     type
       PNode = ^TNode;
       TNode = record
+        Count: Cardinal;
         Key: TKey;
         Value: TValue;
         Priority: Cardinal;
@@ -19,9 +20,9 @@ type
     private
       Altered: Boolean; //for Insert & Delete
       GoOn: Boolean;    //for Traverse
-      FCount: Integer;
       NullNode, RootNode: PNode;
       function GetCount: Integer;
+      function GetNode(Key: TKey): PNode;
       function LeftRotate(Node: PNode): PNode;
       function RightRotate(Node: PNode): PNode;
       function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
@@ -35,9 +36,10 @@ type
       function OnInsert({%H-}Key: TKey; {%H-}Value: TValue; {%H-}IsNew: Boolean): Boolean; virtual;
     public
       property Count: Integer read GetCount;
+      property Item[Key: TKey]: PNode read GetNode; default;
       function Insert(Key: TKey; Value: TValue): Boolean;
       function Delete(Key: TKey): Boolean;
-      function Find(Key: TKey): PNode;
+      function Find(Key: TKey; out Rank: Cardinal): PNode;
       procedure Clear;
       constructor Create; virtual;
       destructor Destroy; override;
@@ -53,11 +55,11 @@ begin
       New(Node);
       Node^.Key := Key;
       Node^.Value := Value;
+      Node^.Count := 1;
       Node^.Priority := Random(MAX_PRIORITY);
       Node^.Left := NullNode;
       Node^.Right := NullNode;
       Altered := True;
-      Inc(FCount);
     end;
   end else begin
     case Compare(Key, Node) of
@@ -96,7 +98,6 @@ begin
           Dispose(Node^.Left);
           Node^.Left := NullNode;
           Altered := True;
-          Dec(FCount);
         end;
       end;
       1: Node^.Right := DeleteNode(Key, Node^.Right);
@@ -142,7 +143,14 @@ end;
 
 function TTreap.GetCount: Integer;
 begin
-  Result := FCount;
+  Result := RootNode^.Count;
+end;
+
+function TTreap.GetNode(Key: TKey): PNode;
+var
+  r: Cardinal;
+begin
+  Result := Find(Key, r);
 end;
 
 function TTreap.RightRotate(Node: PNode): PNode;
@@ -156,11 +164,11 @@ constructor TTreap.Create;
 begin
   Randomize;
   New(NullNode);
+  NullNode^.Count := 0;
   NullNode^.Left := NullNode;
   NullNode^.Right := NullNode;
   NullNode^.Priority := MAX_PRIORITY;
   RootNode := NullNode;
-  FCount := 0;
 end;
 
 destructor TTreap.Destroy;
@@ -188,21 +196,27 @@ begin
   Result := Altered;
 end;
 
-function TTreap.Find(Key: TKey): PNode;
-var
-  cmp : Integer;
+function TTreap.Find(Key: TKey; out Rank: Cardinal): PNode;
 begin
   Result := RootNode;
+  Rank := Result^.Count - Result^.Right^.Count;
   while Result <> NullNode do begin
-    cmp := Compare(Key, Result);
-    if cmp < 0 then
-      Result := Result^.Left
-    else if cmp > 0 then
-      Result := Result^.Right
-    else
-      Break;
+    case Compare(Key, Result) of
+      -1: begin
+        Result := Result^.Left;
+        Rank := Rank - Result^.Count + Result^.Left^.Count;
+      end;
+      1: begin
+        Result := Result^.Right;
+        Rank := Rank + Result^.Count - Result^.Right^.Count;
+      end;
+      else Break;
+    end;
   end;
-  if Result = NullNode then Result := nil;
+  if Result = NullNode then begin
+    Result := nil;
+    Rank := 0;
+  end;
 end;
 
 procedure TTreap.Clear;

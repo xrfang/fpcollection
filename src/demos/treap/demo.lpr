@@ -61,7 +61,7 @@ begin
   tp.Walk;
   WriteLn;
   WriteLn(Format('Max=%d at %s', [tp.Max, tp.MKey]));
-  n := tp.Find('X');
+  n := tp['X'];
   if n = nil then
     WriteLn('X is Not Found')
   else
