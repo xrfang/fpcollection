@@ -16,7 +16,8 @@ type
     constructor Create; override;
   end;
 var
-  i : Integer;
+  c: Char;
+  r : Cardinal;
   tp : THistogram;
   n: THistogram.PNode;
 
@@ -54,9 +55,16 @@ end;
 
 begin
   tp := THistogram.Create;
-  for i := Ord('A') to Ord('Z') do begin
-    tp.Insert(Chr(i), Random(100));
+  WriteLn('Inserting A~Z to Treap, assiging random values...');
+  for c := 'A' to 'Z' do begin
+    tp.Insert(c, Random(100));
   end;
+  WriteLn('Show ranks of all keys in the Treap...');
+  for c := 'A' to 'Z' do begin
+    tp.Find(c, r);
+    Write(Format('%s@%d'#9, [c, r]));
+  end;
+  WriteLn;
   WriteLn('# of items: ' + IntToStr(tp.Count));
   tp.Walk;
   WriteLn;

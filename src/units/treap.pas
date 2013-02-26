@@ -22,6 +22,7 @@ type
       GoOn: Boolean;    //for Traverse
       NullNode, RootNode: PNode;
       function GetCount: Integer;
+      procedure SetCount(Node: PNode);
       function GetNode(Key: TKey): PNode;
       function LeftRotate(Node: PNode): PNode;
       function RightRotate(Node: PNode): PNode;
@@ -69,11 +70,13 @@ begin
       end;
       1: begin
         Node^.Right := InsertNode(Key, Value, Node^.Right);
+        SetCount(Node);
         if Node^.Right^.Priority < Node^.Priority then
           Node := RightRotate(Node);
       end;
       else begin
         Node^.Left := InsertNode(Key, Value, Node^.Left);
+        SetCount(Node);
         if Node^.Left^.Priority < Node^.Priority then
           Node := LeftRotate(Node);
       end;
@@ -97,6 +100,7 @@ begin
           OnDispose(Node^.Left^.Value);
           Dispose(Node^.Left);
           Node^.Left := NullNode;
+          SetCount(Node);
           Altered := True;
         end;
       end;
@@ -138,12 +142,20 @@ function TTreap.LeftRotate(Node: PNode): PNode;
 begin
   Result := Node^.Left;
   Node^.Left := Result^.Right;
+  SetCount(Node);
   Result^.Right := Node;
+  SetCount(Result);
 end;
 
 function TTreap.GetCount: Integer;
 begin
   Result := RootNode^.Count;
+end;
+
+procedure TTreap.SetCount(Node: PNode);
+begin
+  if Node = NullNode then Exit;
+  Node^.Count := Node^.Left^.Count + Node^.Right^.Count + 1;
 end;
 
 function TTreap.GetNode(Key: TKey): PNode;
@@ -157,7 +169,9 @@ function TTreap.RightRotate(Node: PNode): PNode;
 begin
   Result := Node^.Right;
   Node^.Right := Result^.Left;
+  SetCount(Node);
   Result^.Left := Node;
+  SetCount(Result);
 end;
 
 constructor TTreap.Create;
@@ -174,6 +188,7 @@ end;
 destructor TTreap.Destroy;
 begin
   Clear;
+  Dispose(NullNode);
 end;
 
 procedure TTreap.Walk(dir: Integer);
