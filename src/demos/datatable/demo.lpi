@@ -43,7 +43,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="demo"/>
+      <Filename Value="../../../bin/datatable"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
