@@ -4,6 +4,12 @@ program demo;
 
 uses
   Classes, sysutils, datatable;
+
+function sqr_viewer(data: Double): Double;
+begin
+  Result := sqr(data);
+end;
+
 var
   t, t2 : TDataTable;
   i, j : Integer;
@@ -38,6 +44,8 @@ begin
   t.Free;
   t2 := TDataTable.Create;
   t2.LoadFromFile(fn);
+  WriteLn('Viewing table data through "sqr_viewer"...');
+  t2.Viewer := @sqr_viewer;
   WriteLn(Format('Table has %d columns and %d rows', [t2.Cols, t2.Rows]));
   Write(t2.Headers[0]);
   for i := 1 to t2.Cols do Write(',' + t2.Headers[i]);

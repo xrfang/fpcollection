@@ -7,19 +7,20 @@ interface
 uses
   Classes;
 type
-
-  { TDataTable }
-
   TDataTable = class
   type
+    DataViewer = function(data: Double): Double;
     Row = class
+    private
       FDefault: Double;
       FHeader: string;
       FData: array of Double;
-    private
       function GetData(Index: Integer): Double;
+      function GetRaw(Index: Integer): Double;
       procedure SetData(Index: Integer; AValue: Double);
     public
+      Viewer: DataViewer;
+      property Raw[Index: Integer]: Double read GetRaw;
       property Data[Index: Integer]: Double read GetData write SetData; default;
       property Header: string read FHeader write FHeader;
       constructor Create(ADefault: Double);
@@ -35,6 +36,7 @@ type
     function GetRowCount: Integer;
     procedure SetHeader(Index: Integer; AValue: string);
   public
+    Viewer : DataViewer;
     property Rows: Integer read GetRowCount;
     property Cols: Integer read GetColCount;
     property Data[Index: Integer]: Row read GetRow; default;
@@ -60,6 +62,18 @@ const
 
 function TDataTable.Row.GetData(Index: Integer): Double;
 begin
+  Result := GetRaw(Index);
+  if Viewer <> nil then begin
+    try
+      Result := Viewer(Result);
+    except
+      Result := FDefault;
+    end;
+  end;
+end;
+
+function TDataTable.Row.GetRaw(Index: Integer): Double;
+begin
   Index -= 1; //Index starting from 1, but internal data starting from 0
   if Index >= Length(FData) then
     Result := FDefault
@@ -82,6 +96,7 @@ end;
 
 constructor TDataTable.Row.Create(ADefault: Double);
 begin
+  Viewer := nil;
   FDefault := ADefault;
   FHeader := '';
   SetLength(FData, 0);
@@ -95,9 +110,10 @@ end;
 { TDataTable }
 function TDataTable.GetRow(Index: Integer): Row;
 begin
-  if Index < FRows.Count then
-    Result := Row(FRows[Index])
-  else
+  if Index < FRows.Count then begin
+    Result := Row(FRows[Index]);
+    Result.Viewer := Viewer;
+  end else
     Result := nil;
 end;
 
@@ -130,6 +146,7 @@ end;
 
 constructor TDataTable.Create(ADefault: Double);
 begin
+  Viewer := nil;
   FDefault := ADefault;
   FRows := TList.Create;
   FHeaders := TStringList.Create;
@@ -175,7 +192,7 @@ var
   r: Row;
 begin
   buf := GetMem(HEADER_BUFSIZE);
-  s.Read(c, SizeOf(c));
+  s.Read(c{%H-}, SizeOf(c));
   for i := 0 to c - 1 do begin
     s.Read(c, SizeOf(c));
     if c > 0 then begin
@@ -195,7 +212,7 @@ begin
       r.Header := buf;
     end;
     for j := 1 to FHeaders.Count do begin
-      s.Read(d, SizeOf(d));
+      s.Read(d{%H-}, SizeOf(d));
       r[j] := d;
     end;
   end;
