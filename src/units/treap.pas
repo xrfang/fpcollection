@@ -231,10 +231,7 @@ begin
       else Break;
     end;
   end;
-  if Result = NullNode then begin
-    Result := nil;
-    Rank := 0;
-  end;
+  if Result = NullNode then Result := nil;
 end;
 
 function TTreap.Fetch(Rank: Cardinal): PNode;

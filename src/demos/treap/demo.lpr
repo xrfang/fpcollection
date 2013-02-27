@@ -63,8 +63,12 @@ begin
   end;
   WriteLn('Show ranks of all keys...');
   for c := 'A' to 'Z' do begin
-    tp.Find(c, r);
-    Write(Format('%s@%d'#9, [c, r]));
+    if tp.Find(c, r) = nil then begin
+      n := tp.Fetch(r);
+      if n^.Key < c then r += 1;
+      Write(Format('%s>%d'#9, [c, r]));
+    end else
+      Write(Format('%s@%d'#9, [c, r]));
   end;
   WriteLn;
   Writeln('Get all items by rank...');
