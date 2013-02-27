@@ -5,9 +5,10 @@ program demo;
 uses
   Classes, sysutils, datatable;
 var
-  t : TDataTable;
+  t, t2 : TDataTable;
   i, j : Integer;
   r : TDataTable.Row;
+  fn : string;
 begin
   t := TDataTable.Create;
   t.Headers[0] := 't';
@@ -31,6 +32,22 @@ begin
     for j := 1 to t.Cols do Write(Format(',%0.2f', [t[i][j]]));
     WriteLn;
   end;
+  WriteLn('Save table to disk and read back...');
+  fn := ChangeFileExt(ParamStr(0), '.dat');
+  t.SaveToFile(fn);
   t.Free;
+  t2 := TDataTable.Create;
+  t2.LoadFromFile(fn);
+  WriteLn(Format('Table has %d columns and %d rows', [t2.Cols, t2.Rows]));
+  Write(t2.Headers[0]);
+  for i := 1 to t2.Cols do Write(',' + t2.Headers[i]);
+  WriteLn;
+  for i := 0 to t2.Rows - 1 do begin
+    Write(t2[i].Header);
+    for j := 1 to t2.Cols do Write(Format(',%0.2f', [t2[i][j]]));
+    WriteLn;
+  end;
+  WriteLn('Data saved and loaded from ' + ExtractFileName(fn) + ' successfully.');
+  t2.Free;
 end.
 

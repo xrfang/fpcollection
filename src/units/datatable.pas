@@ -44,9 +44,17 @@ type
     procedure Delete(Index: Integer);
     function Append: Row;
     procedure Clear;
+    procedure LoadFromStream(s: TStream);
+    procedure SaveToStream(s: TStream);
+    procedure LoadFromFile(fn: string);
+    procedure SaveToFile(fn: string);
     destructor Destroy; override;
   end;
 implementation
+uses sysutils;
+
+const
+  HEADER_BUFSIZE = 1024;
 
 { TDataTable.TRow }
 
@@ -156,6 +164,105 @@ var
 begin
   for i := 0 to FRows.Count - 1 do Row(FRows[i]).Free;
   FRows.Clear;
+end;
+
+procedure TDataTable.LoadFromStream(s: TStream);
+var
+  buf: PChar;
+  c: Cardinal;
+  i, j: Integer;
+  d: Double;
+  r: Row;
+begin
+  buf := GetMem(HEADER_BUFSIZE);
+  s.Read(c, SizeOf(c));
+  for i := 0 to c - 1 do begin
+    s.Read(c, SizeOf(c));
+    if c > 0 then begin
+      s.Read(buf^, c);
+      buf[c + 1] := #0;
+      FHeaders.Add(buf);
+    end else
+      FHeaders.Add('');
+  end;
+  s.Read(c, SizeOf(c));
+  for i := 1 to c do begin
+    r := Append;
+    s.Read(c, SizeOf(c));
+    if c > 0 then begin
+      s.Read(buf^, c);
+      buf[c + 1] := #0;
+      r.Header := buf;
+    end;
+    for j := 1 to FHeaders.Count do begin
+      s.Read(d, SizeOf(d));
+      r[j] := d;
+    end;
+  end;
+  FreeMem(buf);
+end;
+
+procedure TDataTable.SaveToStream(s: TStream);
+var
+  buf: PChar;
+  c: Cardinal;
+  i, j: Integer;
+  r: Row;
+  d: Double;
+begin
+  buf := GetMem(HEADER_BUFSIZE);
+  c := FHeaders.Count;
+  s.Write(c, SizeOf(c));
+  for i := 0 to c - 1 do begin
+    c := Length(FHeaders[i]);
+    if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
+    s.Write(c, SizeOf(c));
+    if c > 0 then begin
+      StrPLCopy(buf, FHeaders[i], c);
+      s.Write(buf^, c);
+    end;
+  end;
+  c := FRows.Count;
+  s.Write(c, SizeOf(c));
+  for i := 0 to c - 1 do begin
+    r := Row(FRows[i]);
+    c := Length(r.Header);
+    if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
+    s.Write(c, SizeOf(c));
+    if c > 0 then begin
+      StrPLCopy(buf, r.Header, c);
+      s.Write(buf^, c);
+    end;
+    for j := 1 to FHeaders.Count do begin
+      d := r[j];
+      s.Write(d, SizeOf(d));
+    end;
+  end;
+  FreeMem(buf);
+end;
+
+procedure TDataTable.LoadFromFile(fn: string);
+var
+  fs: TFileStream;
+begin
+  fs := TFileStream.Create(fn, fmOpenRead);
+  try
+    LoadFromStream(fs);
+  finally
+    fs.Free;
+  end;
+end;
+
+procedure TDataTable.SaveToFile(fn: string);
+var
+  fs: TFileStream;
+begin
+  fs := TFileStream.Create(fn, fmCreate);
+  try
+    SaveToStream(fs);
+  finally
+    fs.Free;
+  end;
 end;
 
 destructor TDataTable.Destroy;
