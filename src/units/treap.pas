@@ -41,6 +41,7 @@ type
       function Insert(Key: TKey; Value: TValue): Boolean;
       function Delete(Key: TKey): Boolean;
       function Find(Key: TKey; out Rank: Cardinal): PNode;
+      function Fetch(Rank: Cardinal): PNode;
       procedure Clear;
       constructor Create; virtual;
       destructor Destroy; override;
@@ -65,8 +66,10 @@ begin
   end else begin
     case Compare(Key, Node) of
       0: begin
-        Altered := Node^.Value <> Value;
-        if Altered and OnInsert(Key, Value, False) then Node^.Value := Value;
+        if (Node^.Value <> Value) and OnInsert(Key, Value, False) then begin
+          Node^.Value := Value;
+          Altered := True;
+        end;
       end;
       1: begin
         Node^.Right := InsertNode(Key, Value, Node^.Right);
@@ -231,6 +234,24 @@ begin
   if Result = NullNode then begin
     Result := nil;
     Rank := 0;
+  end;
+end;
+
+function TTreap.Fetch(Rank: Cardinal): PNode;
+var
+  r: Cardinal;
+begin
+  Result := RootNode;
+  r := Result^.Count - Result^.Right^.Count;
+  while Result <> NullNode do begin
+    if Rank = r then Exit;
+    if Rank < r then begin
+      Result := Result^.Left;
+      r := r - Result^.Count + Result^.Left^.Count;
+    end else begin
+      Result := Result^.Right;
+      r := r + Result^.Count - Result^.Right^.Count;
+    end;
   end;
 end;
 

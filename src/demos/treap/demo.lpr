@@ -15,7 +15,9 @@ type
     Max: Integer;
     constructor Create; override;
   end;
+
 var
+  i: Integer;
   c: Char;
   r : Cardinal;
   tp : THistogram;
@@ -59,10 +61,16 @@ begin
   for c := 'A' to 'Z' do begin
     tp.Insert(c, Random(100));
   end;
-  WriteLn('Show ranks of all keys in the Treap...');
+  WriteLn('Show ranks of all keys...');
   for c := 'A' to 'Z' do begin
     tp.Find(c, r);
     Write(Format('%s@%d'#9, [c, r]));
+  end;
+  WriteLn;
+  Writeln('Get all items by rank...');
+  for i := 1 to tp.Count do begin
+    n := tp.Fetch(i);
+    Write(Format('%d=%s'#9, [i, n^.Key]));
   end;
   WriteLn;
   WriteLn('# of items: ' + IntToStr(tp.Count));
