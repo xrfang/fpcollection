@@ -30,9 +30,9 @@ type
       function DeleteNode(Key: TKey; Node: PNode): PNode;
       procedure TraverseNode(Node: PNode; dir: Integer);
       procedure ClearNode(Node: PNode);
-      function Compare({%H-}Key: TKey; Node: PNode): Integer;
     protected
       function Traverse({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
+      function OnCompare({%H-}Key: TKey; Node: PNode): Integer; virtual;
       procedure OnDispose({%H-}Value: TValue); virtual;
       function OnInsert({%H-}Key: TKey; {%H-}Value: TValue; {%H-}IsNew: Boolean): Boolean; virtual;
     public
@@ -64,7 +64,7 @@ begin
       Altered := True;
     end;
   end else begin
-    case Compare(Key, Node) of
+    case OnCompare(Key, Node) of
       0: begin
         if (Node^.Value <> Value) and OnInsert(Key, Value, False) then begin
           Node^.Value := Value;
@@ -91,7 +91,7 @@ end;
 function TTreap.DeleteNode(Key: TKey; Node: PNode): PNode;
 begin
   if Node <> NullNode then begin
-    case Compare(Key, Node) of
+    case OnCompare(Key, Node) of
       0: begin
         if Node^.Left^.Priority < Node^.Right^.Priority then
           Node := LeftRotate(Node)
@@ -219,7 +219,7 @@ begin
   Result := RootNode;
   Rank := Result^.Count - Result^.Right^.Count;
   while Result <> NullNode do begin
-    case Compare(Key, Result) of
+    case OnCompare(Key, Result) of
       -1: begin
         Result := Result^.Left;
         Rank := Rank - Result^.Count + Result^.Left^.Count;
@@ -258,7 +258,7 @@ begin
   RootNode := NullNode;
 end;
 
-function TTreap.Compare(Key: TKey; Node: PNode): Integer;
+function TTreap.OnCompare(Key: TKey; Node: PNode): Integer;
 begin
   if Key < Node^.Key then
     Result := -1
