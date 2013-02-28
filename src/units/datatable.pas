@@ -7,6 +7,9 @@ interface
 uses
   Classes;
 type
+
+  { TDataTable }
+
   TDataTable = class
   type
     DataViewer = function(data: Double): Double;
@@ -16,11 +19,9 @@ type
       FHeader: string;
       FData: array of Double;
       function GetData(Index: Integer): Double;
-      function GetRaw(Index: Integer): Double;
       procedure SetData(Index: Integer; AValue: Double);
     public
       Viewer: DataViewer;
-      property Raw[Index: Integer]: Double read GetRaw;
       property Data[Index: Integer]: Double read GetData write SetData; default;
       property Header: string read FHeader write FHeader;
       constructor Create(ADefault: Double);
@@ -32,6 +33,7 @@ type
     FDefault : Double;
     function GetColCount: Integer;
     function GetHeader(Index: Integer): string;
+    function GetRaw(Index: Integer): Row;
     function GetRow(Index: Integer): Row;
     function GetRowCount: Integer;
     procedure SetHeader(Index: Integer; AValue: string);
@@ -40,6 +42,7 @@ type
     property Rows: Integer read GetRowCount;
     property Cols: Integer read GetColCount;
     property Data[Index: Integer]: Row read GetRow; default;
+    property Raw[Index: Integer]: Row read GetRaw;
     property Headers[Index: Integer]: string read GetHeader write SetHeader;
     constructor Create(ADefault: Double = 0);
     function Insert(Index: Integer): Row;
@@ -62,23 +65,19 @@ const
 
 function TDataTable.Row.GetData(Index: Integer): Double;
 begin
-  Result := GetRaw(Index);
-  if Viewer <> nil then begin
-    try
-      Result := Viewer(Result);
-    except
-      Result := FDefault;
-    end;
-  end;
-end;
-
-function TDataTable.Row.GetRaw(Index: Integer): Double;
-begin
   Index -= 1; //Index starting from 1, but internal data starting from 0
   if Index >= Length(FData) then
     Result := FDefault
-  else
+  else begin
     Result := FData[Index];
+    if Viewer <> nil then begin
+      try
+        Result := Viewer(Result);
+      except
+        Result := FDefault;
+      end;
+    end;
+  end;
 end;
 
 procedure TDataTable.Row.SetData(Index: Integer; AValue: Double);
@@ -108,6 +107,16 @@ begin
 end;
 
 { TDataTable }
+
+function TDataTable.GetRaw(Index: Integer): Row;
+begin
+  if Index < FRows.Count then begin
+    Result := Row(FRows[Index]);
+    Result.Viewer := nil;
+  end else
+    Result := nil;
+end;
+
 function TDataTable.GetRow(Index: Integer): Row;
 begin
   if Index < FRows.Count then begin
