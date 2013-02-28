@@ -11,7 +11,7 @@ begin
 end;
 
 var
-  t, t2 : TDataTable;
+  t : TDataTable;
   i, j : Integer;
   r : TDataTable.Row;
   fn : string;
@@ -41,24 +41,22 @@ begin
   WriteLn('Save table to disk and read back...');
   fn := ChangeFileExt(ParamStr(0), '.dat');
   t.SaveToFile(fn);
-  t.Free;
-  t2 := TDataTable.Create;
-  t2.LoadFromFile(fn);
+  t.LoadFromFile(fn);
   WriteLn('Viewing table data...');
-  t2.Viewer := @sqr_viewer;
-  WriteLn(Format('Table has %d columns and %d rows', [t2.Cols, t2.Rows]));
-  Write(t2.Headers[0]);
-  for i := 1 to t2.Cols do Write(',' + t2.Headers[i]);
+  t.Viewer := @sqr_viewer;
+  WriteLn(Format('Table has %d columns and %d rows', [t.Cols, t.Rows]));
+  Write(t.Headers[0]);
+  for i := 1 to t.Cols do Write(',' + t.Headers[i]);
   WriteLn;
-  for i := 0 to t2.Rows - 1 do begin
-    Write('sql_viewer: ' + t2[i].Header);
-    for j := 1 to t2.Cols do Write(Format(',%0.0f', [t2[i][j]]));
+  for i := 0 to t.Rows - 1 do begin
+    Write('sql_viewer: ' + t[i].Header);
+    for j := 1 to t.Cols do Write(Format(',%0.0f', [t[i][j]]));
     WriteLn;
-    Write('RAW       : ' + t2[i].Header);
-    for j := 1 to t2.Cols do Write(Format(',%0.0f', [t2.Raw[i][j]]));
+    Write('RAW       : ' + t[i].Header);
+    for j := 1 to t.Cols do Write(Format(',%0.0f', [t.Raw[i][j]]));
     WriteLn;
   end;
   WriteLn('Data saved and loaded from ' + ExtractFileName(fn) + ' successfully.');
-  t2.Free;
+  t.Free;
 end.
 

@@ -48,7 +48,7 @@ type
     function Insert(Index: Integer): Row;
     procedure Delete(Index: Integer);
     function Append: Row;
-    procedure Clear;
+    procedure Clear(IncludingHeaders: Boolean = False);
     procedure LoadFromStream(s: TStream);
     procedure SaveToStream(s: TStream);
     procedure LoadFromFile(fn: string);
@@ -184,12 +184,13 @@ begin
   FRows.Add(Result);
 end;
 
-procedure TDataTable.Clear;
+procedure TDataTable.Clear(IncludingHeaders: Boolean);
 var
   i : Integer;
 begin
   for i := 0 to FRows.Count - 1 do Row(FRows[i]).Free;
   FRows.Clear;
+  if IncludingHeaders then FHeaders.Clear;
 end;
 
 procedure TDataTable.LoadFromStream(s: TStream);
@@ -200,6 +201,7 @@ var
   d: Double;
   r: Row;
 begin
+  Clear(True);
   buf := GetMem(HEADER_BUFSIZE);
   s.Read(c{%H-}, SizeOf(c));
   for i := 0 to c - 1 do begin
