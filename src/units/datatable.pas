@@ -48,7 +48,7 @@ type
     function Insert(Index: Integer): Row;
     procedure Delete(Index: Integer);
     function Append: Row;
-    procedure Clear(IncludingHeaders: Boolean = False);
+    procedure Clear(IncludingHeaders: Boolean = True);
     procedure LoadFromStream(s: TStream);
     procedure SaveToStream(s: TStream);
     procedure LoadFromFile(fn: string);
