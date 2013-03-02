@@ -12,8 +12,8 @@ type
     DataViewer = function(data: Double): Double;
     Row = class
     private
+      BypassViewer: Boolean;
       FDefault: Double;
-      FHeader: string;
       FData: array of Double;
       function GetCount: Integer;
       function GetData(Index: Integer): Double;
@@ -21,11 +21,13 @@ type
       procedure SetData(Index: Integer; AValue: Double);
     public
       Viewer: DataViewer;
+      Header: string;
       property Count: Integer read GetCount write SetCount;
       property Data[Index: Integer]: Double read GetData write SetData; default;
-      property Header: string read FHeader write FHeader;
       constructor Create(ADefault: Double);
       destructor Destroy; override;
+      function Equals(ARow: Row; CompareHeader: Boolean = False): Boolean;
+      procedure Assign(ARow: Row; IncludeHeader: Boolean = False);
     end;
   private
     FHeaders : TStringList;
@@ -66,16 +68,14 @@ const
 function TDataTable.Row.GetData(Index: Integer): Double;
 begin
   Index -= 1; //Index starting from 1, but internal data starting from 0
-  if Index >= Length(FData) then
-    Result := FDefault
-  else begin
+  Result := FDefault;
+  if Index < Length(FData) then begin
     Result := FData[Index];
-    if Viewer <> nil then begin
-      try
-        Result := Viewer(Result);
-      except
-        Result := FDefault;
-      end;
+    if BypassViewer or (Viewer = nil) then Exit;
+    try
+      Result := Viewer(Result);
+    except
+      Result := FDefault;
     end;
   end;
 end;
@@ -105,15 +105,46 @@ end;
 
 constructor TDataTable.Row.Create(ADefault: Double);
 begin
-  Viewer := nil;
+  BypassViewer := False;
   FDefault := ADefault;
-  FHeader := '';
+  Header := '';
+  Viewer := nil;
   SetLength(FData, 0);
 end;
 
 destructor TDataTable.Row.Destroy;
 begin
   SetLength(FData, 0);
+end;
+
+function TDataTable.Row.Equals(ARow: Row; CompareHeader: Boolean): Boolean;
+var
+  i, c: Integer;
+begin
+  Result := False;
+  if CompareHeader and (Header <> ARow.Header) then Exit;
+  Result := True;
+  BypassViewer := True;
+  ARow.BypassViewer := True;
+  c := Length(ARow.FData);
+  if Length(FData) > c then c := Length(FData);
+  for i := 1 to c do
+    if Data[i] <> ARow[i] then begin
+      Result := False;
+      Break;
+    end;
+  BypassViewer := False;
+  ARow.BypassViewer := False;
+end;
+
+procedure TDataTable.Row.Assign(ARow: Row; IncludeHeader: Boolean);
+var
+  i, c: Integer;
+begin
+  if IncludeHeader then Header := ARow.Header;
+  c := Length(ARow.FData);
+  SetLength(FData, c);
+  for i := 0 to c - 1 do FData[i] := ARow.FData[i];
 end;
 
 { TDataTable }
@@ -295,6 +326,7 @@ procedure TDataTable.SaveToFile(fn: string);
 var
   fs: TFileStream;
 begin
+  ForceDirectories(ExtractFilePath(fn));
   fs := TFileStream.Create(fn, fmCreate);
   try
     SaveToStream(fs);
