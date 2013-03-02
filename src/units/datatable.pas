@@ -160,11 +160,8 @@ end;
 
 function TDataTable.GetRow(Index: Integer): Row;
 begin
-  if Index < FRows.Count then begin
-    Result := Row(FRows[Index]);
-    Result.Viewer := Viewer;
-  end else
-    Result := nil;
+  Result := Row(FRows[Index]);
+  Result.Viewer := Viewer;
 end;
 
 function TDataTable.GetRowCount: Integer;
