@@ -7,9 +7,6 @@ interface
 uses
   Classes;
 type
-
-  { TDataTable }
-
   TDataTable = class
   type
     DataViewer = function(data: Double): Double;
@@ -18,10 +15,13 @@ type
       FDefault: Double;
       FHeader: string;
       FData: array of Double;
+      function GetCount: Integer;
       function GetData(Index: Integer): Double;
+      procedure SetCount(AValue: Integer);
       procedure SetData(Index: Integer; AValue: Double);
     public
       Viewer: DataViewer;
+      property Count: Integer read GetCount write SetCount;
       property Data[Index: Integer]: Double read GetData write SetData; default;
       property Header: string read FHeader write FHeader;
       constructor Create(ADefault: Double);
@@ -78,6 +78,16 @@ begin
       end;
     end;
   end;
+end;
+
+function TDataTable.Row.GetCount: Integer;
+begin
+  Result := Length(FData);
+end;
+
+procedure TDataTable.Row.SetCount(AValue: Integer);
+begin
+  SetLength(FData, AValue);
 end;
 
 procedure TDataTable.Row.SetData(Index: Integer; AValue: Double);
