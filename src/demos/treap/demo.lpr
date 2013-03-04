@@ -57,15 +57,13 @@ end;
 
 begin
   tp := THistogram.Create;
-  WriteLn('Inserting A~Z to Treap, assiging random values...');
+  WriteLn('Inserting A~Z to Treap, assigning random values...');
   for c := 'A' to 'Z' do begin
     tp.Insert(c, Random(100));
   end;
   WriteLn('Show ranks of all keys...');
   for c := 'A' to 'Z' do begin
     if tp.Find(c, r) = nil then begin
-      n := tp.Fetch(r);
-      if n^.Key < c then r += 1;
       Write(Format('%s>%d'#9, [c, r]));
     end else
       Write(Format('%s@%d'#9, [c, r]));

@@ -215,10 +215,13 @@ begin
 end;
 
 function TTreap.Find(Key: TKey; out Rank: Cardinal): PNode;
+var
+  Anchor: TKey;
 begin
   Result := RootNode;
   Rank := Result^.Count - Result^.Right^.Count;
-  while Result <> NullNode do begin
+  repeat
+    Anchor := Result^.Key;
     case OnCompare(Key, Result) of
       -1: begin
         Result := Result^.Left;
@@ -230,8 +233,11 @@ begin
       end;
       else Break;
     end;
+  until Result = NullNode;
+  if Result = NullNode then begin
+    if (Rank = 0) or (Anchor < Key) then Rank += 1;
+    Result := nil;
   end;
-  if Result = NullNode then Result := nil;
 end;
 
 function TTreap.Fetch(Rank: Cardinal): PNode;
