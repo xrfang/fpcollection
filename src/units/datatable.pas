@@ -26,7 +26,7 @@ type
       property Data[Index: Integer]: Double read GetData write SetData; default;
       constructor Create(ADefault: Double);
       destructor Destroy; override;
-      function Equals(ARow: Row; CompareHeader: Boolean = False): Boolean;
+      function {%H-}Equals(ARow: Row; CompareHeader: Boolean = False): Boolean;
       procedure Assign(ARow: Row; IncludeHeader: Boolean = False);
     end;
   private
