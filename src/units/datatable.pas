@@ -243,7 +243,7 @@ begin
     s.Read(c, SizeOf(c));
     if c > 0 then begin
       s.Read(buf^, c);
-      buf[c + 1] := #0;
+      buf[c] := #0;
       FHeaders.Add(buf);
     end else
       FHeaders.Add('');
@@ -254,7 +254,7 @@ begin
     s.Read(c, SizeOf(c));
     if c > 0 then begin
       s.Read(buf^, c);
-      buf[c + 1] := #0;
+      buf[c] := #0;
       r.Header := buf;
     end;
     for j := 1 to FHeaders.Count do begin
