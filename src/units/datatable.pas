@@ -9,25 +9,23 @@ uses
 type
   TDataTable = class
   type
-    DataViewer = function(data: Double): Double;
+    Filter = function(data, default: Double): Double;
     Row = class
     private
-      BypassViewer: Boolean;
-      FDefault: Double;
       FData: array of Double;
+      FDefault: Double;
       function GetCount: Integer;
       function GetData(Index: Integer): Double;
       procedure SetCount(AValue: Integer);
       procedure SetData(Index: Integer; AValue: Double);
     public
-      Viewer: DataViewer;
       Header: string;
       property Count: Integer read GetCount write SetCount;
       property Data[Index: Integer]: Double read GetData write SetData; default;
       constructor Create(ADefault: Double);
       destructor Destroy; override;
-      function {%H-}Equals(ARow: Row; CompareHeader: Boolean = False): Boolean;
-      procedure Assign(ARow: Row; IncludeHeader: Boolean = False);
+      function {%H-}Equals(ARow: Row; Strict: Boolean = False): Boolean;
+      procedure Assign(src: Row; Full: Boolean = False; f: Filter = nil);
     end;
   private
     FHeaders : TStringList;
@@ -35,27 +33,25 @@ type
     FDefault : Double;
     function GetColCount: Integer;
     function GetHeader(Index: Integer): string;
-    function GetRaw(Index: Integer): Row;
     function GetRow(Index: Integer): Row;
     function GetRowCount: Integer;
     procedure SetHeader(Index: Integer; AValue: string);
   public
-    Viewer : DataViewer;
-    property Rows: Integer read GetRowCount;
-    property Cols: Integer read GetColCount;
     property Data[Index: Integer]: Row read GetRow; default;
-    property Raw[Index: Integer]: Row read GetRaw;
+    property Cols: Integer read GetColCount;
     property Headers[Index: Integer]: string read GetHeader write SetHeader;
+    property Rows: Integer read GetRowCount;
     constructor Create(ADefault: Double = 0);
-    function Insert(Index: Integer): Row;
-    procedure Delete(Index: Integer);
-    function Append: Row;
-    procedure Clear(IncludingHeaders: Boolean = True);
-    procedure LoadFromStream(s: TStream);
-    procedure SaveToStream(s: TStream);
-    procedure LoadFromFile(fn: string);
-    procedure SaveToFile(fn: string);
     destructor Destroy; override;
+    function Append: Row;
+    function Insert(Index: Integer): Row;
+    procedure Assign(src: TDataTable; f: Filter = nil);
+    procedure Clear(Complete: Boolean = True);
+    procedure Delete(Index: Integer);
+    procedure LoadFromFile(fn: string);
+    procedure LoadFromStream(s: TStream);
+    procedure SaveToFile(fn: string);
+    procedure SaveToStream(s: TStream);
   end;
 implementation
 uses sysutils;
@@ -69,15 +65,7 @@ function TDataTable.Row.GetData(Index: Integer): Double;
 begin
   Index -= 1; //Index starting from 1, but internal data starting from 0
   Result := FDefault;
-  if Index < Length(FData) then begin
-    Result := FData[Index];
-    if BypassViewer or (Viewer = nil) then Exit;
-    try
-      Result := Viewer(Result);
-    except
-      Result := FDefault;
-    end;
-  end;
+  if Index < Length(FData) then Result := FData[Index];
 end;
 
 function TDataTable.Row.GetCount: Integer;
@@ -105,10 +93,8 @@ end;
 
 constructor TDataTable.Row.Create(ADefault: Double);
 begin
-  BypassViewer := False;
   FDefault := ADefault;
   Header := '';
-  Viewer := nil;
   SetLength(FData, 0);
 end;
 
@@ -117,48 +103,39 @@ begin
   SetLength(FData, 0);
 end;
 
-function TDataTable.Row.Equals(ARow: Row; CompareHeader: Boolean): Boolean;
+function TDataTable.Row.Equals(ARow: Row; Strict: Boolean): Boolean;
 var
   i, c: Integer;
 begin
   Result := False;
-  if CompareHeader and (Header <> ARow.Header) then Exit;
-  Result := True;
-  BypassViewer := True;
-  ARow.BypassViewer := True;
+  if Strict and (Header <> ARow.Header) then Exit;
   c := Length(ARow.FData);
   if Length(FData) > c then c := Length(FData);
-  for i := 1 to c do
-    if Data[i] <> ARow[i] then begin
-      Result := False;
-      Break;
-    end;
-  BypassViewer := False;
-  ARow.BypassViewer := False;
+  for i := 1 to c do if Data[i] <> ARow[i] then Exit;
+  Result := True;
 end;
 
-procedure TDataTable.Row.Assign(ARow: Row; IncludeHeader: Boolean);
+procedure TDataTable.Row.Assign(src: Row; Full: Boolean; f: Filter
+  );
 var
   i, c: Integer;
 begin
-  if IncludeHeader then Header := ARow.Header;
-  c := Length(ARow.FData);
+  if Full then Header := src.Header;
+  c := Length(src.FData);
   SetLength(FData, c);
-  for i := 0 to c - 1 do FData[i] := ARow.FData[i];
+  for i := 0 to c - 1 do begin
+    if f = nil then
+      FData[i] := src.FData[i]
+    else
+      FData[i] := f(src.FData[i], FDefault);
+  end;
 end;
 
 { TDataTable }
 
-function TDataTable.GetRaw(Index: Integer): Row;
-begin
-  Result := Row(FRows[Index]);
-  Result.Viewer := nil;
-end;
-
 function TDataTable.GetRow(Index: Integer): Row;
 begin
   Result := Row(FRows[Index]);
-  Result.Viewer := Viewer;
 end;
 
 function TDataTable.GetRowCount: Integer;
@@ -190,7 +167,6 @@ end;
 
 constructor TDataTable.Create(ADefault: Double);
 begin
-  Viewer := nil;
   FDefault := ADefault;
   FRows := TList.Create;
   FHeaders := TStringList.Create;
@@ -207,6 +183,15 @@ begin
   end;
 end;
 
+procedure TDataTable.Assign(src: TDataTable; f: Filter);
+var
+  i: Integer;
+begin
+  Clear;
+  FHeaders.Assign(src.FHeaders);
+  for i := 0 to src.Rows - 1 do Append.Assign(src[i], True, f);
+end;
+
 procedure TDataTable.Delete(Index: Integer);
 begin
   Row(FRows[Index]).Free;
@@ -219,13 +204,13 @@ begin
   FRows.Add(Result);
 end;
 
-procedure TDataTable.Clear(IncludingHeaders: Boolean);
+procedure TDataTable.Clear(Complete: Boolean);
 var
   i : Integer;
 begin
   for i := 0 to FRows.Count - 1 do Row(FRows[i]).Free;
   FRows.Clear;
-  if IncludingHeaders then FHeaders.Clear;
+  if Complete then FHeaders.Clear;
 end;
 
 procedure TDataTable.LoadFromStream(s: TStream);
