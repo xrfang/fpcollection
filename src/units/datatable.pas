@@ -42,10 +42,10 @@ type
     property Headers[Index: Integer]: string read GetHeader write SetHeader;
     property Rows: Integer read GetRowCount;
     constructor Create(ADefault: Double = 0);
+    constructor Create(src: TDataTable; f: Filter = nil);
     destructor Destroy; override;
     function Append: Row;
     function Insert(Index: Integer): Row;
-    procedure Assign(src: TDataTable; f: Filter = nil);
     procedure Clear(Complete: Boolean = True);
     procedure Delete(Index: Integer);
     procedure LoadFromFile(fn: string);
@@ -172,6 +172,15 @@ begin
   FHeaders := TStringList.Create;
 end;
 
+constructor TDataTable.Create(src: TDataTable; f: Filter);
+var
+  i: Integer;
+begin
+  Create(src.FDefault);
+  FHeaders.Assign(src.FHeaders);
+  for i := 0 to src.Rows - 1 do Append.Assign(src[i], True, f);
+end;
+
 function TDataTable.Insert(Index: Integer): Row;
 begin
   Result := Row.Create(FDefault);
@@ -181,15 +190,6 @@ begin
     Result.Free;
     raise;
   end;
-end;
-
-procedure TDataTable.Assign(src: TDataTable; f: Filter);
-var
-  i: Integer;
-begin
-  Clear;
-  FHeaders.Assign(src.FHeaders);
-  for i := 0 to src.Rows - 1 do Append.Assign(src[i], True, f);
 end;
 
 procedure TDataTable.Delete(Index: Integer);

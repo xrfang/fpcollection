@@ -46,8 +46,7 @@ begin
   t.SaveToFile(fn);
   t.LoadFromFile(fn);
   WriteLn('Viewing table data with Ln filtering...');
-  t2 := TDataTable.Create(-1);
-  t2.Assign(t, @ln_viewer);
+  t2 := TDataTable.Create(t, @ln_viewer);
   t.Free;
   WriteLn(Format('Table has %d columns and %d rows', [t2.Cols, t2.Rows]));
   Write(t2.Headers[0]);
