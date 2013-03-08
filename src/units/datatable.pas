@@ -29,22 +29,22 @@ type
     FRows: TList;
     FDefault : Double;
     function GetColCount: Integer;
-    function GetHeader(Index: Integer): string;
-    function GetRow(Index: Integer): Row;
+    function GetHeader(Index: Real): string;
+    function GetRow(Index: Real): Row;
     function GetRowCount: Integer;
-    procedure SetHeader(Index: Integer; AValue: string);
+    procedure SetHeader(Index: Real; AValue: string);
   public
-    property Data[Index: Integer]: Row read GetRow; default;
+    property Data[Index: Real]: Row read GetRow; default;
     property Cols: Integer read GetColCount;
-    property Headers[Index: Integer]: string read GetHeader write SetHeader;
+    property Headers[Index: Real]: string read GetHeader write SetHeader;
     property Rows: Integer read GetRowCount;
     constructor Create(ADefault: Double = 0);
     constructor Create(src: TDataTable; f: Filter = nil);
     destructor Destroy; override;
     function Append: Row;
-    function Insert(Index: Integer): Row;
+    function Insert(Index: Real): Row;
     procedure Clear(Complete: Boolean = True);
-    procedure Delete(Index: Integer);
+    procedure Delete(Index: Real);
     procedure LoadFromFile(fn: string);
     procedure LoadFromStream(s: TStream);
     procedure SaveToFile(fn: string);
@@ -123,9 +123,9 @@ end;
 
 { TDataTable }
 
-function TDataTable.GetRow(Index: Integer): Row;
+function TDataTable.GetRow(Index: Real): Row;
 begin
-  Result := Row(FRows[Index]);
+  Result := Row(FRows[round(Index)]);
 end;
 
 function TDataTable.GetRowCount: Integer;
@@ -133,10 +133,13 @@ begin
   Result := FRows.Count;
 end;
 
-function TDataTable.GetHeader(Index: Integer): string;
+function TDataTable.GetHeader(Index: Real): string;
+var
+  i: Integer;
 begin
-  if Index < FHeaders.Count then
-    Result := FHeaders[Index]
+  i := round(Index);
+  if i < FHeaders.Count then
+    Result := FHeaders[i]
   else
     Result := '';
 end;
@@ -146,13 +149,14 @@ begin
   Result := FHeaders.Count - 1;
 end;
 
-procedure TDataTable.SetHeader(Index: Integer; AValue: string);
+procedure TDataTable.SetHeader(Index: Real; AValue: string);
 var
-  i, c: Integer;
+  i, j, c: Integer;
 begin
   c := FHeaders.Count;
-  if Index >= c then for i := c to Index do FHeaders.Add('');
-  FHeaders[Index] := AValue;
+  i := round(Index);
+  if i >= c then for j := c to i do FHeaders.Add('');
+  FHeaders[i] := AValue;
 end;
 
 constructor TDataTable.Create(ADefault: Double);
@@ -171,21 +175,24 @@ begin
   for i := 0 to src.Rows - 1 do Append.Assign(src[i], True, f);
 end;
 
-function TDataTable.Insert(Index: Integer): Row;
+function TDataTable.Insert(Index: Real): Row;
 begin
   Result := Row.Create(FDefault);
   try
-    FRows.Insert(Index, Result);
+    FRows.Insert(round(Index), Result);
   except
     Result.Free;
     raise;
   end;
 end;
 
-procedure TDataTable.Delete(Index: Integer);
+procedure TDataTable.Delete(Index: Real);
+var
+  i: Integer;
 begin
-  Row(FRows[Index]).Free;
-  FRows.Delete(Index);
+  i := round(Index);
+  Row(FRows[i]).Free;
+  FRows.Delete(i);
 end;
 
 function TDataTable.Append: Row;
