@@ -15,13 +15,13 @@ type
       FData: array of Double;
       FDefault: Double;
       function GetCount: Integer;
-      function GetData(Index: Integer): Double;
+      function GetData(Index: Real): Double;
       procedure SetCount(AValue: Integer);
-      procedure SetData(Index: Integer; AValue: Double);
+      procedure SetData(Index: Real; AValue: Double);
     public
       Header: string;
       property Count: Integer read GetCount write SetCount;
-      property Data[Index: Integer]: Double read GetData write SetData; default;
+      property Data[Index: Real]: Double read GetData write SetData; default;
       constructor Create(ADefault: Double);
       destructor Destroy; override;
       function {%H-}Equals(ARow: Row; Strict: Boolean = False): Boolean;
@@ -61,11 +61,13 @@ const
 
 { TDataTable.TRow }
 
-function TDataTable.Row.GetData(Index: Integer): Double;
+function TDataTable.Row.GetData(Index: Real): Double;
+var
+  i : Integer;
 begin
-  Index -= 1; //Index starting from 1, but internal data starting from 0
+  i := round(Index) - 1; //Index starting from 1, but internal data starting from 0
   Result := FDefault;
-  if Index < Length(FData) then Result := FData[Index];
+  if i < Length(FData) then Result := FData[i];
 end;
 
 function TDataTable.Row.GetCount: Integer;
@@ -78,17 +80,17 @@ begin
   SetLength(FData, AValue);
 end;
 
-procedure TDataTable.Row.SetData(Index: Integer; AValue: Double);
+procedure TDataTable.Row.SetData(Index: Real; AValue: Double);
 var
-  i, c: Integer;
+  i, j, c: Integer;
 begin
-  Index -= 1; //Index starting from 1, but internal data starting from 0
+  i := round(Index) - 1; //Index starting from 1, but internal data starting from 0
   c := Length(FData);
-  if Index >= c then begin
-    SetLength(FData, Index + 1);
-    for i := c to Index - 1 do FData[i] := FDefault;
+  if i >= c then begin
+    SetLength(FData, i + 1);
+    for j := c to i - 1 do FData[j] := FDefault;
   end;
-  FData[Index] := AValue;
+  FData[i] := AValue;
 end;
 
 constructor TDataTable.Row.Create(ADefault: Double);
