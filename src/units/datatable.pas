@@ -14,13 +14,10 @@ type
     private
       FData: array of Double;
       FDefault: Double;
-      function GetCount: Integer;
       function GetData(Index: Real): Double;
-      procedure SetCount(AValue: Integer);
       procedure SetData(Index: Real; AValue: Double);
     public
       Header: string;
-      property Count: Integer read GetCount write SetCount;
       property Data[Index: Real]: Double read GetData write SetData; default;
       constructor Create(ADefault: Double);
       destructor Destroy; override;
@@ -53,6 +50,7 @@ type
     procedure SaveToFile(fn: string);
     procedure SaveToStream(s: TStream);
   end;
+
 implementation
 uses sysutils;
 
@@ -68,16 +66,6 @@ begin
   i := round(Index) - 1; //Index starting from 1, but internal data starting from 0
   Result := FDefault;
   if i < Length(FData) then Result := FData[i];
-end;
-
-function TDataTable.Row.GetCount: Integer;
-begin
-  Result := Length(FData);
-end;
-
-procedure TDataTable.Row.SetCount(AValue: Integer);
-begin
-  SetLength(FData, AValue);
 end;
 
 procedure TDataTable.Row.SetData(Index: Real; AValue: Double);
