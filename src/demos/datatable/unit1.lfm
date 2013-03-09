@@ -19,6 +19,7 @@ object Form1: TForm1
     Align = alClient
     AutoWidthLastColumn = True
     Columns = <>
+    GridLines = True
     OwnerData = True
     RowSelect = True
     ScrollBars = ssAutoBoth

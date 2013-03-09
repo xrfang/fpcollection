@@ -50,7 +50,12 @@ var
 begin
   if od.Execute then begin
     dt.LoadFromFile(od.FileName);
-    lv.Clear;
+    Caption := Format('[%s] - %s', [od.FileName, Application.Title]);
+    lv.Columns.Clear;
+    with lv.Columns.Add do begin
+      Caption := '#';
+      AutoSize := True;
+    end;
     for i := 0 to dt.Cols do begin
       with lv.Columns.Add do begin
         Caption := dt.Headers[i];
@@ -77,7 +82,8 @@ var
   i: Integer;
 begin
   with Item do begin
-    Caption := dt[Index].Header;
+    Caption := IntToStr(Index);
+    SubItems.Add(dt[Index].Header);
     for i := 1 to dt.Cols do SubItems.Add(Format('%f', [dt[Index][i]]));
   end;
 end;
