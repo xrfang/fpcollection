@@ -25,7 +25,9 @@ type
       procedure Assign(src: Row; Full: Boolean = False; f: Filter = nil);
     end;
   private
+    FCols: Integer;
     FHeaders : TStringList;
+    FLastRow : Row;
     FRows: TList;
     FDefault : Double;
     function GetColCount: Integer;
@@ -33,6 +35,7 @@ type
     function GetRow(Index: Real): Row;
     function GetRowCount: Integer;
     procedure SetHeader(Index: Real; AValue: string);
+    procedure UpdateCols(r: Row);
   public
     property Data[Index: Real]: Row read GetRow; default;
     property Cols: Integer read GetColCount;
@@ -105,8 +108,7 @@ begin
   Result := True;
 end;
 
-procedure TDataTable.Row.Assign(src: Row; Full: Boolean; f: Filter
-  );
+procedure TDataTable.Row.Assign(src: Row; Full: Boolean; f: Filter);
 var
   i, c: Integer;
 begin
@@ -146,7 +148,8 @@ end;
 
 function TDataTable.GetColCount: Integer;
 begin
-  Result := FHeaders.Count - 1;
+  UpdateCols(nil);
+  Result := FCols;
 end;
 
 procedure TDataTable.SetHeader(Index: Real; AValue: string);
@@ -159,20 +162,36 @@ begin
   FHeaders[i] := AValue;
 end;
 
+procedure TDataTable.UpdateCols(r: Row);
+var
+  c: Integer;
+begin
+  if FLastRow <> nil then begin
+    c := Length(FLastRow.FData);
+    if c > FCols then FCols := c;
+  end;
+  FLastRow := r;
+end;
+
 constructor TDataTable.Create(ADefault: Double);
 begin
   FDefault := ADefault;
   FRows := TList.Create;
   FHeaders := TStringList.Create;
+  FHeaders.Add(''); //default column header for row headers
 end;
 
 constructor TDataTable.Create(src: TDataTable; f: Filter);
 var
-  i: Integer;
+  i, c: Integer;
 begin
   Create(src.FDefault);
   FHeaders.Assign(src.FHeaders);
-  for i := 0 to src.Rows - 1 do Append.Assign(src[i], True, f);
+  for i := 0 to src.Rows - 1 do begin
+    c := Length(src[i].FData);
+    if c > FCols then FCols := c;
+    Append.Assign(src[i], True, f);
+  end;
 end;
 
 function TDataTable.Insert(Index: Real): Row;
@@ -180,6 +199,7 @@ begin
   Result := Row.Create(FDefault);
   try
     FRows.Insert(round(Index), Result);
+    UpdateCols(Result);
   except
     Result.Free;
     raise;
@@ -199,6 +219,7 @@ function TDataTable.Append: Row;
 begin
   Result := Row.Create(FDefault);
   FRows.Add(Result);
+  UpdateCols(Result);
 end;
 
 procedure TDataTable.Clear(Complete: Boolean);
@@ -207,6 +228,8 @@ var
 begin
   for i := 0 to FRows.Count - 1 do Row(FRows[i]).Free;
   FRows.Clear;
+  FCols := 0;
+  FLastRow := nil;
   if Complete then FHeaders.Clear;
 end;
 
@@ -239,7 +262,7 @@ begin
       buf[c] := #0;
       r.Header := buf;
     end;
-    for j := 1 to FHeaders.Count do begin
+    for j := 1 to FHeaders.Count - 1 do begin
       s.Read(d{%H-}, SizeOf(d));
       r[j] := d;
     end;
@@ -256,14 +279,14 @@ var
   d: Double;
 begin
   buf := GetMem(HEADER_BUFSIZE);
-  c := FHeaders.Count;
+  c := Cols + 1;
   s.Write(c, SizeOf(c));
   for i := 0 to c - 1 do begin
-    c := Length(FHeaders[i]);
+    c := Length(Headers[i]);
     if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
     s.Write(c, SizeOf(c));
     if c > 0 then begin
-      StrPLCopy(buf, FHeaders[i], c);
+      StrPLCopy(buf, Headers[i], c);
       s.Write(buf^, c);
     end;
   end;
@@ -278,7 +301,7 @@ begin
       StrPLCopy(buf, r.Header, c);
       s.Write(buf^, c);
     end;
-    for j := 1 to FHeaders.Count do begin
+    for j := 1 to Cols do begin
       d := r[j];
       s.Write(d, SizeOf(d));
     end;
