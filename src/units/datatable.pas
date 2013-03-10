@@ -240,30 +240,38 @@ var
   i, j: Integer;
   d: Double;
   r: Row;
+  procedure sRead(Ptr: Pointer; Size: Cardinal);
+  var
+    cnt: Integer;
+  begin
+    cnt := s.Read(Ptr^, Size);
+    if cnt <> Size then
+      raise EStreamError.CreateFmt('Reading %d bytes, got %d', [Size, cnt]);
+  end;
 begin
   Clear(True);
   buf := GetMem(HEADER_BUFSIZE);
-  s.Read(c{%H-}, SizeOf(c));
+  sRead(@c, SizeOf(c));
   for i := 0 to c - 1 do begin
-    s.Read(c, SizeOf(c));
+    sRead(@c, SizeOf(c));
     if c > 0 then begin
-      s.Read(buf^, c);
+      sRead(buf, c);
       buf[c] := #0;
       FHeaders.Add(buf);
     end else
       FHeaders.Add('');
   end;
-  s.Read(c, SizeOf(c));
+  sRead(@c, SizeOf(c));
   for i := 1 to c do begin
     r := Append;
-    s.Read(c, SizeOf(c));
+    sRead(@c, SizeOf(c));
     if c > 0 then begin
-      s.Read(buf^, c);
+      sRead(buf, c);
       buf[c] := #0;
       r.Header := buf;
     end;
     for j := 1 to FHeaders.Count - 1 do begin
-      s.Read(d{%H-}, SizeOf(d));
+      sRead(@d, SizeOf(d));
       r[j] := d;
     end;
   end;
@@ -277,33 +285,41 @@ var
   i, j: Integer;
   r: Row;
   d: Double;
+  procedure sWrite(Ptr: Pointer; Size: Cardinal);
+  var
+    cnt: Integer;
+  begin
+    cnt := s.Write(Ptr^, Size);
+    if cnt <> Size then
+      raise EStreamError.CreateFmt('Writing %d bytes, %d written', [Size, cnt]);
+  end;
 begin
   buf := GetMem(HEADER_BUFSIZE);
   c := Cols + 1;
-  s.Write(c, SizeOf(c));
+  sWrite(@c, SizeOf(c));
   for i := 0 to c - 1 do begin
     c := Length(Headers[i]);
     if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
-    s.Write(c, SizeOf(c));
+    sWrite(@c, SizeOf(c));
     if c > 0 then begin
       StrPLCopy(buf, Headers[i], c);
-      s.Write(buf^, c);
+      sWrite(buf, c);
     end;
   end;
   c := FRows.Count;
-  s.Write(c, SizeOf(c));
+  sWrite(@c, SizeOf(c));
   for i := 0 to c - 1 do begin
     r := Row(FRows[i]);
     c := Length(r.Header);
     if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
-    s.Write(c, SizeOf(c));
+    sWrite(@c, SizeOf(c));
     if c > 0 then begin
       StrPLCopy(buf, r.Header, c);
-      s.Write(buf^, c);
+      sWrite(buf, c);
     end;
     for j := 1 to Cols do begin
       d := r[j];
-      s.Write(d, SizeOf(d));
+      sWrite(@d, SizeOf(d));
     end;
   end;
   FreeMem(buf);
