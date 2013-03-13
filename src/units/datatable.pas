@@ -250,32 +250,39 @@ var
   end;
 begin
   Clear(True);
-  buf := GetMem(HEADER_BUFSIZE);
-  sRead(@c, SizeOf(c));
-  for i := 0 to c - 1 do begin
+  buf := GetMem(HEADER_BUFSIZE + 1);
+  try
     sRead(@c, SizeOf(c));
-    if c > 0 then begin
-      sRead(buf, c);
-      buf[c] := #0;
-      FHeaders.Add(buf);
-    end else
-      FHeaders.Add('');
-  end;
-  sRead(@c, SizeOf(c));
-  for i := 1 to c do begin
-    r := Append;
+    for i := 0 to c - 1 do begin
+      sRead(@c, SizeOf(c));
+      if c > HEADER_BUFSIZE then
+        raise Exception.Create('Data do not conform to spec (header too long).');
+      if c > 0 then begin
+        sRead(buf, c);
+        buf[c] := #0;
+        FHeaders.Add(buf);
+      end else
+        FHeaders.Add('');
+    end;
     sRead(@c, SizeOf(c));
-    if c > 0 then begin
-      sRead(buf, c);
-      buf[c] := #0;
-      r.Header := buf;
+    for i := 1 to c do begin
+      r := Append;
+      sRead(@c, SizeOf(c));
+      if c > HEADER_BUFSIZE then
+        raise Exception.Create('Data do not conform to spec (header too long).');
+      if c > 0 then begin
+        sRead(buf, c);
+        buf[c] := #0;
+        r.Header := buf;
+      end;
+      for j := 1 to FHeaders.Count - 1 do begin
+        sRead(@d, SizeOf(d));
+        r[j] := d;
+      end;
     end;
-    for j := 1 to FHeaders.Count - 1 do begin
-      sRead(@d, SizeOf(d));
-      r[j] := d;
-    end;
+  finally
+    FreeMem(buf);
   end;
-  FreeMem(buf);
 end;
 
 procedure TDataTable.SaveToStream(s: TStream);
@@ -294,35 +301,38 @@ var
       raise EStreamError.CreateFmt('Writing %d bytes, %d written', [Size, cnt]);
   end;
 begin
-  buf := GetMem(HEADER_BUFSIZE);
-  c := Cols + 1;
-  sWrite(@c, SizeOf(c));
-  for i := 0 to c - 1 do begin
-    c := Length(Headers[i]);
-    if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
+  buf := GetMem(HEADER_BUFSIZE + 1);
+  try
+    c := Cols + 1;
     sWrite(@c, SizeOf(c));
-    if c > 0 then begin
-      StrPLCopy(buf, Headers[i], c);
-      sWrite(buf, c);
+    for i := 0 to c - 1 do begin
+      c := Length(Headers[i]);
+      if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
+      sWrite(@c, SizeOf(c));
+      if c > 0 then begin
+        StrPLCopy(buf, Headers[i], c);
+        sWrite(buf, c);
+      end;
     end;
-  end;
-  c := FRows.Count;
-  sWrite(@c, SizeOf(c));
-  for i := 0 to c - 1 do begin
-    r := Row(FRows[i]);
-    c := Length(r.Header);
-    if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
+    c := FRows.Count;
     sWrite(@c, SizeOf(c));
-    if c > 0 then begin
-      StrPLCopy(buf, r.Header, c);
-      sWrite(buf, c);
+    for i := 0 to c - 1 do begin
+      r := Row(FRows[i]);
+      c := Length(r.Header);
+      if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
+      sWrite(@c, SizeOf(c));
+      if c > 0 then begin
+        StrPLCopy(buf, r.Header, c);
+        sWrite(buf, c);
+      end;
+      for j := 1 to Cols do begin
+        d := r[j];
+        sWrite(@d, SizeOf(d));
+      end;
     end;
-    for j := 1 to Cols do begin
-      d := r[j];
-      sWrite(@d, SizeOf(d));
-    end;
+  finally
+    FreeMem(buf);
   end;
-  FreeMem(buf);
 end;
 
 procedure TDataTable.LoadFromFile(fn: string);
