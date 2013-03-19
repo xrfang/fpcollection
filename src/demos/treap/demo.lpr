@@ -7,9 +7,9 @@ type
 
   THistogram = class(specialize TTreap<Char, Integer>)
   protected
-    function Traverse(Key: Char; Value: Integer): Boolean; override;
-    procedure OnDispose(Value: Integer); override;
-    function OnInsert(Key: TKey; Value: TValue; IsNew: Boolean): Boolean; override;
+    function DefaultTraverser(Key: Char; Value: Integer): Boolean; override;
+    procedure DefaultDisposer(Value: Integer); override;
+    function DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean; override;
   public
     MKey: Char;
     Max: Integer;
@@ -25,7 +25,7 @@ var
 
 { THistogram }
 
-function THistogram.Traverse(Key: Char; Value: Integer): Boolean;
+function THistogram.DefaultTraverser(Key: Char; Value: Integer): Boolean;
 begin
   if Value > Max then begin
     MKey := Key;
@@ -35,12 +35,12 @@ begin
   Result := True;
 end;
 
-procedure THistogram.OnDispose(Value: Integer);
+procedure THistogram.DefaultDisposer(Value: Integer);
 begin
   WriteLn('Now disposing: ' + IntToStr(Value));
 end;
 
-function THistogram.OnInsert(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
+function THistogram.DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
 begin
   Result := (not IsNew) or (Value mod 2 = 0);
   if not Result then

@@ -17,10 +17,18 @@ type
         Priority: Cardinal;
         Left, Right: PNode;
       end;
+      TTraverser = function(Key: TKey; Value: TValue): Boolean of object;
+      TComparator = function(Key: TKey; Node: PNode): Integer of object;
+      TDisposer = procedure(Value: TValue) of object;
+      TUpdater = function(Key: TKey; Value: TValue; IsNew: Boolean): Boolean of object;
     private
       Altered: Boolean; //for Insert & Delete
       GoOn: Boolean;    //for Traverse
       NullNode, RootNode: PNode;
+      FTraverser: TTraverser;
+      FComparator: TComparator;
+      FDisposer: TDisposer;
+      FUpdater: TUpdater;
       function GetCount: Integer;
       procedure SetCount(Node: PNode);
       function GetNode(Key: TKey): PNode;
@@ -31,11 +39,16 @@ type
       procedure TraverseNode(Node: PNode; dir: Integer);
       procedure ClearNode(Node: PNode);
     protected
-      function Traverse({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
-      function OnCompare({%H-}Key: TKey; Node: PNode): Integer; virtual;
-      procedure OnDispose({%H-}Value: TValue); virtual;
-      function OnInsert({%H-}Key: TKey; {%H-}Value: TValue; {%H-}IsNew: Boolean): Boolean; virtual;
+      function DefaultTraverser({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
+      function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
+      procedure DefaultDisposer({%H-}Value: TValue); virtual;
+      function DefaultUpdater({%H-}Key: TKey; {%H-}Value: TValue;
+        {%H-}IsNew: Boolean): Boolean; virtual;
     public
+      property Traverser: TTraverser read FTraverser write FTraverser;
+      property Comparator: TComparator read FComparator write FComparator;
+      property Disposer: TDisposer read FDisposer write FDisposer;
+      property Updater: TUpdater read FUpdater write FUpdater;
       property Count: Integer read GetCount;
       property Item[Key: TKey]: PNode read GetNode; default;
       function Insert(Key: TKey; Value: TValue): Boolean;
@@ -53,7 +66,7 @@ implementation
 function TTreap.InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
 begin
   if Node = NullNode then begin
-    if OnInsert(Key, Value, True) then begin
+    if FUpdater(Key, Value, True) then begin
       New(Node);
       Node^.Key := Key;
       Node^.Value := Value;
@@ -64,9 +77,9 @@ begin
       Altered := True;
     end;
   end else begin
-    case OnCompare(Key, Node) of
+    case FComparator(Key, Node) of
       0: begin
-        if (Node^.Value <> Value) and OnInsert(Key, Value, False) then begin
+        if (Node^.Value <> Value) and FUpdater(Key, Value, False) then begin
           Node^.Value := Value;
           Altered := True;
         end;
@@ -91,7 +104,7 @@ end;
 function TTreap.DeleteNode(Key: TKey; Node: PNode): PNode;
 begin
   if Node <> NullNode then begin
-    case OnCompare(Key, Node) of
+    case FComparator(Key, Node) of
       0: begin
         if Node^.Left^.Priority < Node^.Right^.Priority then
           Node := LeftRotate(Node)
@@ -100,7 +113,7 @@ begin
         if Node <> NullNode then
           Node := DeleteNode(Key, Node)
         else begin
-          OnDispose(Node^.Left^.Value);
+          FDisposer(Node^.Left^.Value);
           Dispose(Node^.Left);
           Node^.Left := NullNode;
           SetCount(Node);
@@ -119,11 +132,11 @@ begin
   if (not GoOn) or (Node = NullNode) then Exit;
   if dir = 0 then begin
     TraverseNode(Node^.Left, dir);
-    if GoOn then GoOn := Traverse(Node^.Key, Node^.Value);
+    if GoOn then GoOn := FTraverser(Node^.Key, Node^.Value);
     TraverseNode(Node^.Right, dir);
   end else begin
     TraverseNode(Node^.Right, dir);
-    if GoOn then GoOn := Traverse(Node^.Key, Node^.Value);
+    if GoOn then GoOn := FTraverser(Node^.Key, Node^.Value);
     TraverseNode(Node^.Left, dir);
   end;
 end;
@@ -186,6 +199,10 @@ begin
   NullNode^.Right := NullNode;
   NullNode^.Priority := MAX_PRIORITY;
   RootNode := NullNode;
+  FTraverser := @DefaultTraverser;
+  FComparator := @DefaultComparator;
+  FDisposer := @DefaultDisposer;
+  FUpdater := @DefaultUpdater;
 end;
 
 destructor TTreap.Destroy;
@@ -216,13 +233,13 @@ end;
 
 function TTreap.Find(Key: TKey; out Rank: Cardinal): PNode;
 var
-  Anchor: TKey;
+  {%H-}Anchor: TKey;
 begin
   Result := RootNode;
   Rank := Result^.Count - Result^.Right^.Count;
   repeat
     Anchor := Result^.Key;
-    case OnCompare(Key, Result) of
+    case FComparator(Key, Result) of
       -1: begin
         Result := Result^.Left;
         Rank := Rank - Result^.Count + Result^.Left^.Count;
@@ -264,7 +281,7 @@ begin
   RootNode := NullNode;
 end;
 
-function TTreap.OnCompare(Key: TKey; Node: PNode): Integer;
+function TTreap.DefaultComparator(Key: TKey; Node: PNode): Integer;
 begin
   if Key < Node^.Key then
     Result := -1
@@ -274,16 +291,16 @@ begin
     Result := 0;
 end;
 
-function TTreap.Traverse(Key: TKey; Value: TValue): Boolean;
+function TTreap.DefaultTraverser(Key: TKey; Value: TValue): Boolean;
 begin
   Result := True;
 end;
 
-procedure TTreap.OnDispose(Value: TValue);
+procedure TTreap.DefaultDisposer(Value: TValue);
 begin
 end;
 
-function TTreap.OnInsert(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
+function TTreap.DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
 begin
   Result := True;
 end;
