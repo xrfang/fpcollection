@@ -53,8 +53,6 @@ begin
   Max := -1;
 end;
 
-{$R *.res}
-
 begin
   tp := THistogram.Create;
   WriteLn('Inserting A~Z to Treap, assigning random values...');

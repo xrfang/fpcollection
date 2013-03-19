@@ -9,8 +9,9 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <ResourceType Value="res"/>
+      <Title Value="demo2"/>
       <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -29,47 +30,29 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="1">
       <Unit0>
-        <Filename Value="demo.lpr"/>
+        <Filename Value="demo2.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="demo"/>
+        <UnitName Value="demo2"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="../../units/treap.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="treap"/>
-      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="../../../bin/treap"/>
+      <Filename Value="../../../bin/treap2"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
       <OtherUnitFiles Value="../../units"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <SyntaxMode Value="Delphi"/>
-      </SyntaxOptions>
-    </Parsing>
-    <Linking>
-      <Options>
-        <Win32>
-          <GraphicApplication Value="True"/>
-        </Win32>
-      </Options>
-    </Linking>
     <Other>
       <CompilerMessages>
-        <UseMsgFile Value="True"/>
+        <MsgFileName Value=""/>
       </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>
     </Other>

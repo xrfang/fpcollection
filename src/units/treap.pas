@@ -25,6 +25,7 @@ type
       Altered: Boolean; //for Insert & Delete
       GoOn: Boolean;    //for Traverse
       NullNode, RootNode: PNode;
+      CopyTarget: TTreap;
       FTraverser: TTraverser;
       FComparator: TComparator;
       FDisposer: TDisposer;
@@ -39,6 +40,7 @@ type
       procedure TraverseNode(Node: PNode; dir: Integer);
       procedure ClearNode(Node: PNode);
     protected
+      function Copier(Key: TKey; Value: TValue): Boolean; virtual;
       function DefaultTraverser({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
       function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
       procedure DefaultDisposer({%H-}Value: TValue); virtual;
@@ -55,6 +57,7 @@ type
       function Delete(Key: TKey): Boolean;
       function Find(Key: TKey; out Rank: Cardinal): PNode;
       function Fetch(Rank: Cardinal): PNode;
+      function Copy(Comp: TComparator = nil): TTreap;
       procedure Clear;
       constructor Create; virtual;
       destructor Destroy; override;
@@ -152,6 +155,14 @@ begin
     Node^.Right := NullNode;
   end;
   DeleteNode(Node^.Key, Node);
+end;
+
+function TTreap.Copier(Key: TKey; Value: TValue): Boolean;
+begin
+  Result := False;
+  if CopyTarget = nil then Exit;
+  CopyTarget.Insert(Key, Value);
+  Result := True;
 end;
 
 function TTreap.LeftRotate(Node: PNode): PNode;
@@ -273,6 +284,19 @@ begin
       r := r + Result^.Count - Result^.Right^.Count;
     end;
   end;
+end;
+
+function TTreap.Copy(Comp: TComparator): TTreap;
+begin
+  if Comp = nil then Comp := FComparator;
+  Result := TTreap.Create;
+  Result.Comparator := Comp;
+  Result.Traverser := FTraverser;
+  CopyTarget := Result;
+  FTraverser := @Copier;
+  Walk;
+  FTraverser := Result.Traverser;
+  CopyTarget := nil;
 end;
 
 procedure TTreap.Clear;
