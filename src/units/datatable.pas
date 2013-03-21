@@ -12,6 +12,7 @@ type
     Filter = function(data, default: Double): Double;
     Row = class
     private
+      FOwner: TDataTable;
       FData: array of Double;
       FDefault: Double;
       function GetData(Index: Real): Double;
@@ -19,7 +20,7 @@ type
     public
       Header: string;
       property Data[Index: Real]: Double read GetData write SetData; default;
-      constructor Create(ADefault: Double);
+      constructor Create(AOwner: TDataTable; ADefault: Double);
       destructor Destroy; override;
       function {%H-}Equals(ARow: Row; Strict: Boolean = False): Boolean;
       procedure Assign(src: Row; Full: Boolean = False; f: Filter = nil);
@@ -27,18 +28,15 @@ type
   private
     FCols: Integer;
     FHeaders : TStringList;
-    FLastRow : Row;
     FRows: TList;
     FDefault : Double;
-    function GetColCount: Integer;
     function GetHeader(Index: Real): string;
     function GetRow(Index: Real): Row;
     function GetRowCount: Integer;
     procedure SetHeader(Index: Real; AValue: string);
-    procedure UpdateCols(r: Row);
   public
     property Data[Index: Real]: Row read GetRow; default;
-    property Cols: Integer read GetColCount;
+    property Cols: Integer read FCols;
     property Headers[Index: Real]: string read GetHeader write SetHeader;
     property Rows: Integer read GetRowCount;
     constructor Create(ADefault: Double = 0);
@@ -78,14 +76,16 @@ begin
   i := round(Index) - 1; //Index starting from 1, but internal data starting from 0
   c := Length(FData);
   if i >= c then begin
+    if FOwner.FCols <= i then FOwner.FCols := i + 1;
     SetLength(FData, i + 1);
     for j := c to i - 1 do FData[j] := FDefault;
   end;
   FData[i] := AValue;
 end;
 
-constructor TDataTable.Row.Create(ADefault: Double);
+constructor TDataTable.Row.Create(AOwner: TDataTable; ADefault: Double);
 begin
+  FOwner := AOwner;
   FDefault := ADefault;
   Header := '';
   SetLength(FData, 0);
@@ -146,12 +146,6 @@ begin
     Result := '';
 end;
 
-function TDataTable.GetColCount: Integer;
-begin
-  UpdateCols(nil);
-  Result := FCols;
-end;
-
 procedure TDataTable.SetHeader(Index: Real; AValue: string);
 var
   i, j, c: Integer;
@@ -160,17 +154,6 @@ begin
   i := round(Index);
   if i >= c then for j := c to i do FHeaders.Add('');
   FHeaders[i] := AValue;
-end;
-
-procedure TDataTable.UpdateCols(r: Row);
-var
-  c: Integer;
-begin
-  if FLastRow <> nil then begin
-    c := Length(FLastRow.FData);
-    if c > FCols then FCols := c;
-  end;
-  FLastRow := r;
 end;
 
 constructor TDataTable.Create(ADefault: Double);
@@ -196,10 +179,9 @@ end;
 
 function TDataTable.Insert(Index: Real): Row;
 begin
-  Result := Row.Create(FDefault);
+  Result := Row.Create(Self, FDefault);
   try
     FRows.Insert(round(Index), Result);
-    UpdateCols(Result);
   except
     Result.Free;
     raise;
@@ -217,9 +199,8 @@ end;
 
 function TDataTable.Append: Row;
 begin
-  Result := Row.Create(FDefault);
+  Result := Row.Create(Self, FDefault);
   FRows.Add(Result);
-  UpdateCols(Result);
 end;
 
 procedure TDataTable.Clear(Complete: Boolean);
@@ -229,7 +210,6 @@ begin
   for i := 0 to FRows.Count - 1 do Row(FRows[i]).Free;
   FRows.Clear;
   FCols := 0;
-  FLastRow := nil;
   if Complete then FHeaders.Clear;
 end;
 
@@ -275,7 +255,8 @@ begin
         buf[c] := #0;
         r.Header := buf;
       end;
-      for j := 1 to FHeaders.Count - 1 do begin
+      sRead(@c, SizeOf(c));
+      for j := 1 to c do begin
         sRead(@d, SizeOf(d));
         r[j] := d;
       end;
@@ -303,14 +284,14 @@ var
 begin
   buf := GetMem(HEADER_BUFSIZE + 1);
   try
-    c := Cols + 1;
+    c := FHeaders.Count;
     sWrite(@c, SizeOf(c));
     for i := 0 to c - 1 do begin
-      c := Length(Headers[i]);
+      c := Length(FHeaders[i]);
       if c > HEADER_BUFSIZE then c := HEADER_BUFSIZE;
       sWrite(@c, SizeOf(c));
       if c > 0 then begin
-        StrPLCopy(buf, Headers[i], c);
+        StrPLCopy(buf, FHeaders[i], c);
         sWrite(buf, c);
       end;
     end;
@@ -325,8 +306,10 @@ begin
         StrPLCopy(buf, r.Header, c);
         sWrite(buf, c);
       end;
-      for j := 1 to Cols do begin
-        d := r[j];
+      c := Length(r.FData);
+      sWrite(@c, SizeOf(c));
+      for j := 0 to c - 1 do begin
+        d := r.FData[j];
         sWrite(@d, SizeOf(d));
       end;
     end;

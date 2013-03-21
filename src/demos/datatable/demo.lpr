@@ -20,11 +20,12 @@ var
   fn : string;
 begin
   t := TDataTable.Create;
-  {
-  //commented out to test Load/Saving of tables with empty column headers
+  //comment out to test Load/Saving of tables with empty column headers
   t.Headers[0] := 't';
   t.Headers[1] := 'o';
   t.Headers[2] := 'h';
+  //comment out to test partial header situation
+  {
   t.Headers[3] := 'l';
   t.Headers[4] := 'c';
   }
