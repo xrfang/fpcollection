@@ -12,9 +12,7 @@ type
   public
     function OrderByName(Key: TKey; Node: PNode): Integer;
     function OrderByAge(Key: TKey; Node: PNode): Integer;
-    function Lister(Key: TKey; Value: TValue): Boolean;
     procedure Add(name: string; age: Integer);
-    constructor Create; override;
   end;
 { TRoller }
 function TRoller.OrderByName(Key: TKey; Node: PNode): Integer;
@@ -45,12 +43,6 @@ begin
     Result := 0;
 end;
 
-function TRoller.Lister(Key: TKey; Value: TValue): Boolean;
-begin
-  WriteLn(Format('NAME: %s'#9'AGE: %d', [Key^.name, Key^.age]));
-  Result := True;
-end;
-
 procedure TRoller.Add(name: string; age: Integer);
 var
   p: PPerson;
@@ -61,15 +53,14 @@ begin
   Insert(p, 0);
 end;
 
-constructor TRoller.Create;
-begin
-  inherited Create;
-  Traverser := @Lister;
-end;
-
+var
+  n: TRoller.PNode;
+  r1, r2: TRoller;
 begin
   Randomize;
-  with TRoller.Create do begin
+  r1 := TRoller.Create;
+  r2 := TRoller.Create;
+  with r1 do begin
     Comparator := @OrderByName;
     Add('Alice', Random(100));
     Add('Bob', Random(100));
@@ -79,12 +70,16 @@ begin
     Add('Frank', Random(100));
     Add('Gina', Random(100));
     Add('Henry', Random(100));
-    Walk;
-    WriteLn;
-    with Copy(@OrderByAge) do begin
-      Walk;
-      Free;
+    for n in r1 do begin
+      WriteLn(Format('NAME: %s'#9'AGE: %d', [n^.Key^.name, n^.Key^.age]));
     end;
+    WriteLn;
+    r2.Comparator := @r2.OrderByAge;
+    r2.Import(r1);
+    for n in r2 do begin
+      WriteLn(Format('NAME: %s'#9'AGE: %d', [n^.Key^.name, n^.Key^.age]));
+    end;
+    r2.Free;
     Free;
   end;
 end.

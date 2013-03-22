@@ -7,7 +7,6 @@ type
 
   THistogram = class(specialize TTreap<Char, Integer>)
   protected
-    function DefaultTraverser(Key: Char; Value: Integer): Boolean; override;
     procedure DefaultDisposer(Value: Integer); override;
     function DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean; override;
   public
@@ -24,16 +23,6 @@ var
   n: THistogram.PNode;
 
 { THistogram }
-
-function THistogram.DefaultTraverser(Key: Char; Value: Integer): Boolean;
-begin
-  if Value > Max then begin
-    MKey := Key;
-    Max := Value;
-  end;
-  Write(Format('%s=%d'#9, [Key, Value]));
-  Result := True;
-end;
 
 procedure THistogram.DefaultDisposer(Value: Integer);
 begin
@@ -80,7 +69,14 @@ begin
   for n in tp.Reversed do Write(n^.Key + ' ');
   WriteLn;
   WriteLn('# of items: ' + IntToStr(tp.Count));
-  tp.Walk;
+  tp.Max := -1;
+  for n in tp do begin
+    if n^.Value > tp.Max then begin
+      tp.Max := n^.Value;
+      tp.MKey := n^.Key;
+    end;
+    Write(Format('%s=%d'#9, [n^.Key, n^.Value]));
+  end;
   WriteLn;
   WriteLn(Format('Max=%d at %s', [tp.Max, tp.MKey]));
   n := tp['X'];
@@ -99,8 +95,12 @@ begin
   WriteLn('a is ' + BoolToStr(tp.Insert('a', 65536), 'Updated', 'Not Changed'));
   WriteLn('# of items: ' + IntToStr(tp.Count));
   tp.Max := -1;
-  tp.Walk(1);
-  WriteLn;
+  for n in tp do begin
+    if n^.Value > tp.Max then begin
+      tp.Max := n^.Value;
+      tp.MKey := n^.Key;
+    end;
+  end;
   WriteLn(Format('Max=%d at %s', [tp.Max, tp.MKey]));
   tp.Clear;
   WriteLn(Format('After Clear(), # of items=%d', [tp.Count]));

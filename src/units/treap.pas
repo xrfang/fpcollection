@@ -13,7 +13,6 @@ type
       Priority: Cardinal;
       Left, Right: PNode;
     end;
-    TTraverser = function(Key: TKey; Value: TValue): Boolean of object;
     TComparator = function(Key: TKey; Node: PNode): Integer of object;
     TDisposer = procedure(Value: TValue) of object;
     TUpdater = function(Key: TKey; Value: TValue; IsNew: Boolean): Boolean of object;
@@ -21,15 +20,12 @@ type
   const
     MAX_PRIORITY = $7FFFFFFF;
   private
-    Altered: Boolean;   //for Insert & Delete
-    GoOn: Boolean;      //for Traverse
     NullNode, RootNode: PNode;
-    CopyTarget: TTreap;
+    Altered: Boolean;   //for Insert & Delete
     ProxyFor: TTreap;   //for enumeration
     Direction: Byte;    //for enumeration
     Enums: TStack;      //for enumeration
     FCurrent: PNode;    //for enumeration
-    FTraverser: TTraverser;
     FComparator: TComparator;
     FDisposer: TDisposer;
     FUpdater: TUpdater;
@@ -42,17 +38,13 @@ type
     function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
     function DeleteNode(Key: TKey; Node: PNode): PNode;
     function Next(dir: Byte): Boolean;
-    procedure TraverseNode(Node: PNode; dir: Integer);
     procedure ClearNode(Node: PNode);
   protected
-    function Copier(Key: TKey; Value: TValue): Boolean; virtual;
-    function DefaultTraverser({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
     function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
     procedure DefaultDisposer({%H-}Value: TValue); virtual;
     function DefaultUpdater({%H-}Key: TKey; {%H-}Value: TValue;
       {%H-}IsNew: Boolean): Boolean; virtual;
   public
-    property Traverser: TTraverser read FTraverser write FTraverser;
     property Comparator: TComparator read FComparator write FComparator;
     property Disposer: TDisposer read FDisposer write FDisposer;
     property Updater: TUpdater read FUpdater write FUpdater;
@@ -66,11 +58,10 @@ type
     function Delete(Key: TKey): Boolean;
     function Find(Key: TKey; out Rank: Cardinal): PNode;
     function Fetch(Rank: Cardinal): PNode;
-    function Copy(Comp: TComparator = nil): TTreap;
+    procedure Import(src: TTreap; Clean: Boolean = True);
     procedure Clear;
     constructor Create; virtual;
     destructor Destroy; override;
-    procedure Walk(dir: Integer = 0); //0=ascending; 1=descending
   end;
 
 implementation
@@ -165,20 +156,6 @@ begin
   Result := False;
 end;
 
-procedure TTreap.TraverseNode(Node: PNode; dir: Integer);
-begin
-  if (not GoOn) or (Node = NullNode) then Exit;
-  if dir = 0 then begin
-    TraverseNode(Node^.Left, dir);
-    if GoOn then GoOn := FTraverser(Node^.Key, Node^.Value);
-    TraverseNode(Node^.Right, dir);
-  end else begin
-    TraverseNode(Node^.Right, dir);
-    if GoOn then GoOn := FTraverser(Node^.Key, Node^.Value);
-    TraverseNode(Node^.Left, dir);
-  end;
-end;
-
 procedure TTreap.ClearNode(Node: PNode);
 begin
   if Node^.Left <> NullNode then begin
@@ -190,14 +167,6 @@ begin
     Node^.Right := NullNode;
   end;
   DeleteNode(Node^.Key, Node);
-end;
-
-function TTreap.Copier(Key: TKey; Value: TValue): Boolean;
-begin
-  Result := False;
-  if CopyTarget = nil then Exit;
-  CopyTarget.Insert(Key, Value);
-  Result := True;
 end;
 
 function TTreap.LeftRotate(Node: PNode): PNode;
@@ -253,7 +222,6 @@ begin
   NullNode^.Right := NullNode;
   NullNode^.Priority := MAX_PRIORITY;
   RootNode := NullNode;
-  FTraverser := @DefaultTraverser;
   FComparator := @DefaultComparator;
   FDisposer := @DefaultDisposer;
   FUpdater := @DefaultUpdater;
@@ -265,12 +233,6 @@ begin
   Clear;
   Dispose(NullNode);
   Enums.Free;
-end;
-
-procedure TTreap.Walk(dir: Integer);
-begin
-  GoOn := True;
-  TraverseNode(RootNode, dir);
 end;
 
 function TTreap.Insert(Key: TKey; Value: TValue): Boolean;
@@ -331,17 +293,12 @@ begin
   end;
 end;
 
-function TTreap.Copy(Comp: TComparator): TTreap;
+procedure TTreap.Import(src: TTreap; Clean: Boolean);
+var
+  n: PNode;
 begin
-  if Comp = nil then Comp := FComparator;
-  Result := TTreap.Create;
-  Result.Comparator := Comp;
-  Result.Traverser := FTraverser;
-  CopyTarget := Result;
-  FTraverser := @Copier;
-  Walk;
-  FTraverser := Result.Traverser;
-  CopyTarget := nil;
+  if Clean then Clear;
+  for n in src do Insert(n^.Key, n^.Value);
 end;
 
 procedure TTreap.Clear;
@@ -358,11 +315,6 @@ begin
     Result := 1
   else
     Result := 0;
-end;
-
-function TTreap.DefaultTraverser(Key: TKey; Value: TValue): Boolean;
-begin
-  Result := True;
 end;
 
 procedure TTreap.DefaultDisposer(Value: TValue);
