@@ -14,8 +14,6 @@ type
       Left, Right: PNode;
     end;
     TComparator = function(Key: TKey; Node: PNode): Integer of object;
-    TDisposer = procedure(Value: TValue) of object;
-    TUpdater = function(Key: TKey; Value: TValue; IsNew: Boolean): Boolean of object;
   private
   const
     MAX_PRIORITY = $7FFFFFFF;
@@ -27,8 +25,6 @@ type
     Enums: TStack;      //for enumeration
     FCurrent: PNode;    //for enumeration
     FComparator: TComparator;
-    FDisposer: TDisposer;
-    FUpdater: TUpdater;
     function GetCount: Integer;
     function GetCurrent: PNode;
     procedure SetCount(Node: PNode);
@@ -41,13 +37,8 @@ type
     procedure ClearNode(Node: PNode);
   protected
     function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
-    procedure DefaultDisposer({%H-}Value: TValue); virtual;
-    function DefaultUpdater({%H-}Key: TKey; {%H-}Value: TValue;
-      {%H-}IsNew: Boolean): Boolean; virtual;
   public
     property Comparator: TComparator read FComparator write FComparator;
-    property Disposer: TDisposer read FDisposer write FDisposer;
-    property Updater: TUpdater read FUpdater write FUpdater;
     property Count: Integer read GetCount;
     property Item[Key: TKey]: PNode read GetNode; default;
     property Current: PNode read GetCurrent;
@@ -69,20 +60,18 @@ implementation
 function TTreap.InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
 begin
   if Node = NullNode then begin
-    if FUpdater(Key, Value, True) then begin
-      New(Node);
-      Node^.Key := Key;
-      Node^.Value := Value;
-      Node^.Count := 1;
-      Node^.Priority := Random(MAX_PRIORITY);
-      Node^.Left := NullNode;
-      Node^.Right := NullNode;
-      Altered := True;
-    end;
+    New(Node);
+    Node^.Key := Key;
+    Node^.Value := Value;
+    Node^.Count := 1;
+    Node^.Priority := Random(MAX_PRIORITY);
+    Node^.Left := NullNode;
+    Node^.Right := NullNode;
+    Altered := True;
   end else begin
     case FComparator(Key, Node) of
       0: begin
-        if (Node^.Value <> Value) and FUpdater(Key, Value, False) then begin
+        if Node^.Value <> Value then begin
           Node^.Value := Value;
           Altered := True;
         end;
@@ -116,7 +105,6 @@ begin
         if Node <> NullNode then
           Node := DeleteNode(Key, Node)
         else begin
-          FDisposer(Node^.Left^.Value);
           Dispose(Node^.Left);
           Node^.Left := NullNode;
           SetCount(Node);
@@ -223,8 +211,6 @@ begin
   NullNode^.Priority := MAX_PRIORITY;
   RootNode := NullNode;
   FComparator := @DefaultComparator;
-  FDisposer := @DefaultDisposer;
-  FUpdater := @DefaultUpdater;
   Enums := TStack.Create;
 end;
 
@@ -315,15 +301,6 @@ begin
     Result := 1
   else
     Result := 0;
-end;
-
-procedure TTreap.DefaultDisposer(Value: TValue);
-begin
-end;
-
-function TTreap.DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
-begin
-  Result := True;
 end;
 
 function TTreap.GetEnumerator: TTreap;
