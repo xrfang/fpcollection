@@ -3,76 +3,74 @@ unit treap;
 interface
 uses contnrs;
 type
-
-  { TTreap }
-
   generic TTreap<TKey, TValue> = class
-    const
-      MAX_PRIORITY = $7FFFFFFF;
-    type
-      PNode = ^TNode;
-      TNode = record
-        Count: Cardinal;
-        Key: TKey;
-        Value: TValue;
-        Priority: Cardinal;
-        Left, Right: PNode;
-      end;
-      TTraverser = function(Key: TKey; Value: TValue): Boolean of object;
-      TComparator = function(Key: TKey; Node: PNode): Integer of object;
-      TDisposer = procedure(Value: TValue) of object;
-      TUpdater = function(Key: TKey; Value: TValue; IsNew: Boolean): Boolean of object;
-    private
-      Altered: Boolean;   //for Insert & Delete
-      GoOn: Boolean;      //for Traverse
-      NullNode, RootNode: PNode;
-      CopyTarget: TTreap;
-      ProxyFor: TTreap;   //for enumeration
-      Direction: Byte;    //for enumeration
-      Enums: TStack;      //for enumeration
-      FCurrent: PNode;    //for enumeration
-      FTraverser: TTraverser;
-      FComparator: TComparator;
-      FDisposer: TDisposer;
-      FUpdater: TUpdater;
-      function GetCount: Integer;
-      function GetCurrent: PNode;
-      procedure SetCount(Node: PNode);
-      function GetNode(Key: TKey): PNode;
-      function LeftRotate(Node: PNode): PNode;
-      function RightRotate(Node: PNode): PNode;
-      function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
-      function DeleteNode(Key: TKey; Node: PNode): PNode;
-      function Next(dir: Byte): Boolean;
-      procedure TraverseNode(Node: PNode; dir: Integer);
-      procedure ClearNode(Node: PNode);
-    protected
-      function Copier(Key: TKey; Value: TValue): Boolean; virtual;
-      function DefaultTraverser({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
-      function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
-      procedure DefaultDisposer({%H-}Value: TValue); virtual;
-      function DefaultUpdater({%H-}Key: TKey; {%H-}Value: TValue;
-        {%H-}IsNew: Boolean): Boolean; virtual;
-    public
-      property Traverser: TTraverser read FTraverser write FTraverser;
-      property Comparator: TComparator read FComparator write FComparator;
-      property Disposer: TDisposer read FDisposer write FDisposer;
-      property Updater: TUpdater read FUpdater write FUpdater;
-      property Count: Integer read GetCount;
-      property Item[Key: TKey]: PNode read GetNode; default;
-      property Current: PNode read GetCurrent;
-      function GetEnumerator: TTreap;
-      function Reversed: TTreap;
-      function MoveNext: Boolean;
-      function Insert(Key: TKey; Value: TValue): Boolean;
-      function Delete(Key: TKey): Boolean;
-      function Find(Key: TKey; out Rank: Cardinal): PNode;
-      function Fetch(Rank: Cardinal): PNode;
-      function Copy(Comp: TComparator = nil): TTreap;
-      procedure Clear;
-      constructor Create; virtual;
-      destructor Destroy; override;
-      procedure Walk(dir: Integer = 0); //0=ascending; 1=descending
+  type
+    PNode = ^TNode;
+    TNode = record
+      Count: Cardinal;
+      Key: TKey;
+      Value: TValue;
+      Priority: Cardinal;
+      Left, Right: PNode;
+    end;
+    TTraverser = function(Key: TKey; Value: TValue): Boolean of object;
+    TComparator = function(Key: TKey; Node: PNode): Integer of object;
+    TDisposer = procedure(Value: TValue) of object;
+    TUpdater = function(Key: TKey; Value: TValue; IsNew: Boolean): Boolean of object;
+  private
+  const
+    MAX_PRIORITY = $7FFFFFFF;
+  private
+    Altered: Boolean;   //for Insert & Delete
+    GoOn: Boolean;      //for Traverse
+    NullNode, RootNode: PNode;
+    CopyTarget: TTreap;
+    ProxyFor: TTreap;   //for enumeration
+    Direction: Byte;    //for enumeration
+    Enums: TStack;      //for enumeration
+    FCurrent: PNode;    //for enumeration
+    FTraverser: TTraverser;
+    FComparator: TComparator;
+    FDisposer: TDisposer;
+    FUpdater: TUpdater;
+    function GetCount: Integer;
+    function GetCurrent: PNode;
+    procedure SetCount(Node: PNode);
+    function GetNode(Key: TKey): PNode;
+    function LeftRotate(Node: PNode): PNode;
+    function RightRotate(Node: PNode): PNode;
+    function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
+    function DeleteNode(Key: TKey; Node: PNode): PNode;
+    function Next(dir: Byte): Boolean;
+    procedure TraverseNode(Node: PNode; dir: Integer);
+    procedure ClearNode(Node: PNode);
+  protected
+    function Copier(Key: TKey; Value: TValue): Boolean; virtual;
+    function DefaultTraverser({%H-}Key: TKey; {%H-}Value: TValue): Boolean; virtual;
+    function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
+    procedure DefaultDisposer({%H-}Value: TValue); virtual;
+    function DefaultUpdater({%H-}Key: TKey; {%H-}Value: TValue;
+      {%H-}IsNew: Boolean): Boolean; virtual;
+  public
+    property Traverser: TTraverser read FTraverser write FTraverser;
+    property Comparator: TComparator read FComparator write FComparator;
+    property Disposer: TDisposer read FDisposer write FDisposer;
+    property Updater: TUpdater read FUpdater write FUpdater;
+    property Count: Integer read GetCount;
+    property Item[Key: TKey]: PNode read GetNode; default;
+    property Current: PNode read GetCurrent;
+    function GetEnumerator: TTreap;
+    function Reversed: TTreap;
+    function MoveNext: Boolean;
+    function Insert(Key: TKey; Value: TValue): Boolean;
+    function Delete(Key: TKey): Boolean;
+    function Find(Key: TKey; out Rank: Cardinal): PNode;
+    function Fetch(Rank: Cardinal): PNode;
+    function Copy(Comp: TComparator = nil): TTreap;
+    procedure Clear;
+    constructor Create; virtual;
+    destructor Destroy; override;
+    procedure Walk(dir: Integer = 0); //0=ascending; 1=descending
   end;
 
 implementation
