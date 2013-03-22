@@ -28,6 +28,7 @@ type
       NullNode, RootNode: PNode;
       CopyTarget: TTreap;
       ProxyFor: TTreap;   //for enumeration
+      Direction: Byte;    //for enumeration
       Enums: TStack;      //for enumeration
       FCurrent: PNode;    //for enumeration
       FTraverser: TTraverser;
@@ -42,6 +43,7 @@ type
       function RightRotate(Node: PNode): PNode;
       function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
       function DeleteNode(Key: TKey; Node: PNode): PNode;
+      function Next(dir: Byte): Boolean;
       procedure TraverseNode(Node: PNode; dir: Integer);
       procedure ClearNode(Node: PNode);
     protected
@@ -60,6 +62,7 @@ type
       property Item[Key: TKey]: PNode read GetNode; default;
       property Current: PNode read GetCurrent;
       function GetEnumerator: TTreap;
+      function Reversed: TTreap;
       function MoveNext: Boolean;
       function Insert(Key: TKey; Value: TValue): Boolean;
       function Delete(Key: TKey): Boolean;
@@ -136,6 +139,32 @@ begin
     end;
   end;
   Result := Node;
+end;
+
+function TTreap.Next(dir: Byte): Boolean;
+var
+  Node: PNode;
+begin
+  if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
+  while Enums.Count > 0 do begin
+    Node := Enums.Pop;
+    if Node = nil then begin
+      FCurrent := ENums.Pop;
+      Exit(True);
+    end else if dir = 0 then begin
+      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+      Enums.Push(Node);
+      Enums.Push(nil);
+      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+    end else begin
+      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+      Enums.Push(Node);
+      Enums.Push(nil);
+      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+    end;
+  end;
+  Direction := 0;
+  Result := False;
 end;
 
 procedure TTreap.TraverseNode(Node: PNode; dir: Integer);
@@ -356,24 +385,15 @@ begin
   Result.ProxyFor := Self;
 end;
 
-function TTreap.MoveNext: Boolean;
-var
-  Node: PNode;
+function TTreap.Reversed: TTreap;
 begin
-  if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
-  while Enums.Count > 0 do begin
-    Node := Enums.Pop;
-    if Node = nil then begin
-      FCurrent := ENums.Pop;
-      Exit(True);
-    end else begin
-      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
-      Enums.Push(Node);
-      Enums.Push(nil);
-      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
-    end;
-  end;
-  Result := False;
+  Direction := 1;
+  Result := Self;
+end;
+
+function TTreap.MoveNext: Boolean;
+begin
+  Result := Next(Direction);
 end;
 
 end.

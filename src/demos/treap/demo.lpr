@@ -76,6 +76,9 @@ begin
   Writeln('Get all items by enumerator...');
   for n in tp do Write(n^.Key + ' ');
   WriteLn;
+  Writeln('Get all items reversed by enumerator...');
+  for n in tp.Reversed do Write(n^.Key + ' ');
+  WriteLn;
   WriteLn('# of items: ' + IntToStr(tp.Count));
   tp.Walk;
   WriteLn;
