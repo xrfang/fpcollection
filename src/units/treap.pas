@@ -1,6 +1,7 @@
 unit treap;
 {$mode objfpc}
 interface
+uses contnrs;
 type
 
   { TTreap }
@@ -22,15 +23,19 @@ type
       TDisposer = procedure(Value: TValue) of object;
       TUpdater = function(Key: TKey; Value: TValue; IsNew: Boolean): Boolean of object;
     private
-      Altered: Boolean; //for Insert & Delete
-      GoOn: Boolean;    //for Traverse
+      Altered: Boolean;   //for Insert & Delete
+      GoOn: Boolean;      //for Traverse
       NullNode, RootNode: PNode;
       CopyTarget: TTreap;
+      ProxyFor: TTreap;   //for enumeration
+      Enums: TStack;      //for enumeration
+      FCurrent: PNode;    //for enumeration
       FTraverser: TTraverser;
       FComparator: TComparator;
       FDisposer: TDisposer;
       FUpdater: TUpdater;
       function GetCount: Integer;
+      function GetCurrent: PNode;
       procedure SetCount(Node: PNode);
       function GetNode(Key: TKey): PNode;
       function LeftRotate(Node: PNode): PNode;
@@ -53,6 +58,9 @@ type
       property Updater: TUpdater read FUpdater write FUpdater;
       property Count: Integer read GetCount;
       property Item[Key: TKey]: PNode read GetNode; default;
+      property Current: PNode read GetCurrent;
+      function GetEnumerator: TTreap;
+      function MoveNext: Boolean;
       function Insert(Key: TKey; Value: TValue): Boolean;
       function Delete(Key: TKey): Boolean;
       function Find(Key: TKey; out Rank: Cardinal): PNode;
@@ -179,6 +187,14 @@ begin
   Result := RootNode^.Count;
 end;
 
+function TTreap.GetCurrent: PNode;
+begin
+  if ProxyFor <> nil then
+    Result := ProxyFor.FCurrent
+  else
+    Result := FCurrent;
+end;
+
 procedure TTreap.SetCount(Node: PNode);
 begin
   if Node = NullNode then Exit;
@@ -214,12 +230,14 @@ begin
   FComparator := @DefaultComparator;
   FDisposer := @DefaultDisposer;
   FUpdater := @DefaultUpdater;
+  Enums := TStack.Create;
 end;
 
 destructor TTreap.Destroy;
 begin
   Clear;
   Dispose(NullNode);
+  Enums.Free;
 end;
 
 procedure TTreap.Walk(dir: Integer);
@@ -327,6 +345,35 @@ end;
 function TTreap.DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
 begin
   Result := True;
+end;
+
+function TTreap.GetEnumerator: TTreap;
+begin
+  while Enums.Count > 0 do Enums.Pop;
+  FCurrent := nil;
+  Enums.Push(RootNode);
+  Result := TTreap.Create;
+  Result.ProxyFor := Self;
+end;
+
+function TTreap.MoveNext: Boolean;
+var
+  Node: PNode;
+begin
+  if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
+  while Enums.Count > 0 do begin
+    Node := Enums.Pop;
+    if Node = nil then begin
+      FCurrent := ENums.Pop;
+      Exit(True);
+    end else begin
+      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+      Enums.Push(Node);
+      Enums.Push(nil);
+      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+    end;
+  end;
+  Result := False;
 end;
 
 end.
