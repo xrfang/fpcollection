@@ -49,11 +49,7 @@ begin
   end;
   WriteLn;
   WriteLn(Format('Max=%d at %s', [mv, mk]));
-  n := tp['X'];
-  if n = nil then
-    WriteLn('X is Not Found')
-  else
-    WriteLn('X is ' + IntToStr(n^.Value));
+  WriteLn('X is ', tp.Value('X', -65536));
   WriteLn('x is ' + BoolToStr(tp.Delete('x'), 'Deleted', 'Not Found'));
   WriteLn('# of items: ' + IntToStr(tp.Count));
   WriteLn('X is ' + BoolToStr(tp.Delete('X'), 'Deleted', 'Not Found'));

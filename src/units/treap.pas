@@ -49,6 +49,7 @@ type
     function Delete(Key: TKey): Boolean;
     function Find(Key: TKey; out Rank: Cardinal): PNode;
     function Fetch(Rank: Cardinal): PNode;
+    function Value(Key: TKey; ADefault: TValue): TValue;
     procedure Import(src: TTreap; Clean: Boolean = True);
     procedure Clear;
     constructor Create; virtual;
@@ -283,6 +284,15 @@ begin
       r := r + Result^.Count - Result^.Right^.Count;
     end;
   end;
+end;
+
+function TTreap.Value(Key: TKey; ADefault: TValue): TValue;
+var
+  n: PNode;
+begin
+  n := GetNode(Key);
+  if n = nil then Exit(ADefault);
+  Exit(n^.Value);
 end;
 
 procedure TTreap.Import(src: TTreap; Clean: Boolean);
