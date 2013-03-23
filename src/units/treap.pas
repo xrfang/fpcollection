@@ -111,8 +111,14 @@ begin
           Altered := True;
         end;
       end;
-      1: Node^.Right := DeleteNode(Key, Node^.Right);
-      else Node^.Left := DeleteNode(Key, Node^.Left);
+      1: begin
+        Node^.Right := DeleteNode(Key, Node^.Right);
+        SetCount(Node);
+      end
+      else begin
+        Node^.Left := DeleteNode(Key, Node^.Left);
+        SetCount(Node);
+      end;
     end;
   end;
   Result := Node;

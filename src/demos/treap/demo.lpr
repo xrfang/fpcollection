@@ -2,18 +2,7 @@ program demo;
 {$mode objfpc}
 uses sysutils, treap;
 type
-
-  { THistogram }
-
-  THistogram = class(specialize TTreap<Char, Integer>)
-  protected
-    procedure DefaultDisposer(Value: Integer); override;
-    function DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean; override;
-  public
-    MKey: Char;
-    Max: Integer;
-    constructor Create; override;
-  end;
+  THistogram = specialize TTreap<Char, Integer>;
 
 var
   i: Integer;
@@ -21,32 +10,13 @@ var
   r : Cardinal;
   tp : THistogram;
   n: THistogram.PNode;
-
-{ THistogram }
-
-procedure THistogram.DefaultDisposer(Value: Integer);
-begin
-  WriteLn('Now disposing: ' + IntToStr(Value));
-end;
-
-function THistogram.DefaultUpdater(Key: TKey; Value: TValue; IsNew: Boolean): Boolean;
-begin
-  Result := (not IsNew) or (Value mod 2 = 0);
-  if not Result then
-    WriteLn(Format('Assigning odd number %d to %s is forbidden', [Value, Key]));
-end;
-
-constructor THistogram.Create;
-begin
-  inherited Create;
-  Max := -1;
-end;
-
+  mk: Char;
+  mv: Integer;
 begin
   tp := THistogram.Create;
   WriteLn('Inserting A~Z to Treap, assigning random values...');
   for c := 'A' to 'Z' do begin
-    tp.Insert(c, Random(100));
+    if Random < 0.5 then tp.Insert(c, Random(100));
   end;
   WriteLn('Show ranks of all keys...');
   for c := 'A' to 'Z' do begin
@@ -69,16 +39,16 @@ begin
   for n in tp.Reversed do Write(n^.Key + ' ');
   WriteLn;
   WriteLn('# of items: ' + IntToStr(tp.Count));
-  tp.Max := -1;
+  mv := -1;
   for n in tp do begin
-    if n^.Value > tp.Max then begin
-      tp.Max := n^.Value;
-      tp.MKey := n^.Key;
+    if n^.Value > mv then begin
+      mv := n^.Value;
+      mk := n^.Key;
     end;
     Write(Format('%s=%d'#9, [n^.Key, n^.Value]));
   end;
   WriteLn;
-  WriteLn(Format('Max=%d at %s', [tp.Max, tp.MKey]));
+  WriteLn(Format('Max=%d at %s', [mv, mk]));
   n := tp['X'];
   if n = nil then
     WriteLn('X is Not Found')
@@ -94,14 +64,16 @@ begin
   WriteLn('# of items: ' + IntToStr(tp.Count));
   WriteLn('a is ' + BoolToStr(tp.Insert('a', 65536), 'Updated', 'Not Changed'));
   WriteLn('# of items: ' + IntToStr(tp.Count));
-  tp.Max := -1;
+  mv := -1;
   for n in tp do begin
-    if n^.Value > tp.Max then begin
-      tp.Max := n^.Value;
-      tp.MKey := n^.Key;
+    if n^.Value > mv then begin
+      mv := n^.Value;
+      mk := n^.Key;
     end;
+    Write(Format('%s=%d'#9, [n^.Key, n^.Value]));
   end;
-  WriteLn(Format('Max=%d at %s', [tp.Max, tp.MKey]));
+  WriteLn;
+  WriteLn(Format('Max=%d at %s', [mv, mk]));
   tp.Clear;
   WriteLn(Format('After Clear(), # of items=%d', [tp.Count]));
   tp.Free;
