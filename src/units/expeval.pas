@@ -43,6 +43,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function Calc(args: array of Extended): Extended;
+    function Calc: Extended;
   end;
 
 implementation
@@ -103,7 +104,12 @@ function TExpEval.Calc(args: array of Extended): Extended;
     end;
   end;
 begin
-  Calc := c(tree);
+  Result := c(tree);
+end;
+
+function TExpEval.Calc: Extended;
+begin
+  Result := Calc([]);
 end;
 
 procedure TExpEval.Error(s: string);
@@ -389,4 +395,4 @@ begin
   Init(Formula);
 end;
 
-end.
+end.
