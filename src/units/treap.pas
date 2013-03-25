@@ -132,6 +132,7 @@ begin
   if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
   while Enums.Count > 0 do begin
     Node := Enums.Pop;
+    if Node = NullNode then Exit(False);
     if Node = nil then begin
       FCurrent := ENums.Pop;
       Exit(True);
