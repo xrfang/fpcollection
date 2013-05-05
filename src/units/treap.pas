@@ -37,6 +37,7 @@ type
     procedure ClearNode(Node: PNode);
   protected
     function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
+    procedure Disposer({%H-}Node: PNode); virtual;
   public
     property Comparator: TComparator read FComparator write FComparator;
     property Count: Integer read GetCount;
@@ -106,6 +107,7 @@ begin
         if Node <> NullNode then
           Node := DeleteNode(Key, Node)
         else begin
+          Disposer(Node^.Left);
           Dispose(Node^.Left);
           Node^.Left := NullNode;
           SetCount(Node);
@@ -318,6 +320,10 @@ begin
     Result := 1
   else
     Result := 0;
+end;
+
+procedure TTreap.Disposer(Node: PNode);
+begin
 end;
 
 function TTreap.GetEnumerator: TTreap;

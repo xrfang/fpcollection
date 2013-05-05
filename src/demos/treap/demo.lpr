@@ -2,7 +2,10 @@ program demo;
 {$mode objfpc}
 uses sysutils, treap;
 type
-  THistogram = specialize TTreap<Char, Integer>;
+  THistogram = class(specialize TTreap<Char, Integer>)
+  protected
+    procedure Disposer(Node: PNode); override;
+  end;
 
 var
   i: Integer;
@@ -12,6 +15,12 @@ var
   n: THistogram.PNode;
   mk: Char;
   mv: Integer;
+
+procedure THistogram.Disposer(Node: PNode);
+begin
+  WriteLn('Disposing: Key=', Node^.Key, ', Value=', Node^.Value);
+end;
+
 begin
   tp := THistogram.Create;
   WriteLn('Inserting A~Z to Treap, assigning random values...');
