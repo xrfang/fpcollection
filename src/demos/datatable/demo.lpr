@@ -4,7 +4,8 @@ program demo;
 
 uses
   Classes, sysutils, datatable;
-
+type
+  TDoubles = array of Double;
 function ln_viewer(data, default: Double): Double;
 begin
   if data > 0 then
@@ -16,6 +17,7 @@ end;
 var
   t, t2 : TDataTable;
   i, j : Integer;
+  ds : TDoubles;
   r : TDataTable.Row;
   fn : string;
 begin
@@ -62,6 +64,13 @@ begin
     WriteLn;
   end;
   WriteLn('Data saved and loaded from ' + ExtractFileName(fn) + ' successfully.');
+  WriteLn('Testing fetching with Raw property...');
+  for i := 0 to t2.Rows - 1 do begin
+    Write(t2[i].Header);
+    ds := TDoubles(t2[i].Raw);
+    for j := 0 to Length(ds) - 1 do Write(Format(',%0.2f', [ds[j]]));
+    WriteLn;
+  end;
   t2.Free;
 end.
 

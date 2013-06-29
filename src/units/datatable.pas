@@ -16,10 +16,12 @@ type
       FData: array of Double;
       FDefault: Double;
       function GetData(Index: Real): Double;
+      function GetRaw: Pointer;
       procedure SetData(Index: Real; AValue: Double);
     public
       Header: string;
       property Data[Index: Real]: Double read GetData write SetData; default;
+      property Raw: Pointer read GetRaw;
       constructor Create(AOwner: TDataTable; ADefault: Double);
       destructor Destroy; override;
       function {%H-}Equals(ARow: Row; Strict: Boolean = False): Boolean;
@@ -67,6 +69,11 @@ begin
   i := round(Index) - 1; //Index starting from 1, but internal data starting from 0
   Result := FDefault;
   if i < Length(FData) then Result := FData[i];
+end;
+
+function TDataTable.Row.GetRaw: Pointer;
+begin
+  Result := Pointer(FData);
 end;
 
 procedure TDataTable.Row.SetData(Index: Real; AValue: Double);
