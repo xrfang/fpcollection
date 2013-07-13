@@ -1,11 +1,7 @@
 unit datatable;
-
 {$mode objfpc}{$H+}
-
 interface
-
-uses
-  Classes;
+uses Classes;
 type
   TDataTable = class
   type
@@ -15,12 +11,12 @@ type
       FOwner: TDataTable;
       FData: array of Double;
       FDefault: Double;
-      function GetData(Index: Real): Double;
+      function GetData(Index: Variant): Variant;
       function GetRaw: Pointer;
-      procedure SetData(Index: Real; AValue: Double);
+      procedure SetData(Index: Variant; AValue: Variant);
     public
       Header: string;
-      property Data[Index: Real]: Double read GetData write SetData; default;
+      property Data[Index: Variant]: Variant read GetData write SetData; default;
       property Raw: Pointer read GetRaw;
       constructor Create(AOwner: TDataTable; ADefault: Double);
       destructor Destroy; override;
@@ -55,39 +51,52 @@ type
   end;
 
 implementation
-uses sysutils;
+uses sysutils, variants;
 
 const
   HEADER_BUFSIZE = 1024;
-
-{ TDataTable.TRow }
-
-function TDataTable.Row.GetData(Index: Real): Double;
-var
-  i : Integer;
-begin
-  i := round(Index) - 1; //Index starting from 1, but internal data starting from 0
-  Result := FDefault;
-  if i < Length(FData) then Result := FData[i];
-end;
 
 function TDataTable.Row.GetRaw: Pointer;
 begin
   Result := Pointer(FData);
 end;
 
-procedure TDataTable.Row.SetData(Index: Real; AValue: Double);
+function TDataTable.Row.GetData(Index: Variant): Variant;
 var
-  i, j, c: Integer;
+  idx: Integer;
 begin
-  i := round(Index) - 1; //Index starting from 1, but internal data starting from 0
-  c := Length(FData);
-  if i >= c then begin
-    if FOwner.FCols <= i then FOwner.FCols := i + 1;
-    SetLength(FData, i + 1);
-    for j := c to i - 1 do FData[j] := FDefault;
+  if VarIsStr(Index) then
+    idx := FOwner.FHeaders.IndexOf(Index)
+  else
+    idx := Index;
+  if idx < 0 then raise Exception.Create('Invalid Index: ' + Index);
+  if idx = 0 then Exit(Header); //0 means row header
+  idx -= 1; //Index starting from 1, but internal data starting from 0
+  Result := FDefault;
+  if idx < Length(FData) then Result := FData[idx];
+end;
+
+procedure TDataTable.Row.SetData(Index: Variant; AValue: Variant);
+var
+  idx, j, c: Integer;
+begin
+  if VarIsStr(Index) then
+    idx := FOwner.FHeaders.IndexOf(Index)
+  else
+    idx := Index;
+  if idx < 0 then raise Exception.Create('Invalid Index: ' + Index);
+  if idx = 0 then begin //0 means row header
+    Header := AValue;
+    Exit;
   end;
-  FData[i] := AValue;
+  idx -= 1; //Index starting from 1, but internal data starting from 0
+  c := Length(FData);
+  if idx >= c then begin
+    if FOwner.FCols <= idx then FOwner.FCols := idx + 1;
+    SetLength(FData, idx + 1);
+    for j := c to idx - 1 do FData[j] := FDefault;
+  end;
+  FData[idx] := AValue;
 end;
 
 constructor TDataTable.Row.Create(AOwner: TDataTable; ADefault: Double);

@@ -19,6 +19,7 @@ var
   i, j : Integer;
   ds : TDoubles;
   r : TDataTable.Row;
+  v: Real;
   fn : string;
 begin
   t := TDataTable.Create;
@@ -27,10 +28,8 @@ begin
   t.Headers[1] := 'o';
   t.Headers[2] := 'h';
   //comment out to test partial header situation
-  {
   t.Headers[3] := 'l';
   t.Headers[4] := 'c';
-  }
   for i := 0 to 5 do begin
     r := t.Append;
     r.Header := '2013-02-22';
@@ -44,8 +43,18 @@ begin
   WriteLn;
   for i := 0 to t.Rows - 1 do begin
     Write(t[i].Header);
-    for j := 1 to t.Cols do Write(Format(',%0.0f', [t[i][j]]));
+    for j := 1 to t.Cols do begin
+      v := t[i][j];
+      Write(Format(',%0.0f', [v]));
+    end;
     WriteLn;
+  end;
+  WriteLn('Fetch data via column header instead of column index...');
+  Write(t.Headers[0]);
+  for i := 1 to t.Cols do Write(',' + t.Headers[i]);
+  WriteLn;
+  for i := 0 to t.Rows - 1 do begin
+    WriteLn(t[i]['t'],',',t[i]['o'],',',t[i]['h'],',',t[i]['l'],',',t[i]['c']);
   end;
   WriteLn('Save table to disk and read back...');
   fn := ChangeFileExt(ParamStr(0), '.dat');
@@ -60,7 +69,10 @@ begin
   WriteLn;
   for i := 0 to t2.Rows - 1 do begin
     Write(t2[i].Header);
-    for j := 1 to t2.Cols do Write(Format(',%0.2f', [t2[i][j]]));
+    for j := 1 to t2.Cols do begin
+      v := t2[i][j];
+      Write(Format(',%0.2f', [v]));
+    end;
     WriteLn;
   end;
   WriteLn('Data saved and loaded from ' + ExtractFileName(fn) + ' successfully.');
