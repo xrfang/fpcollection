@@ -33,7 +33,6 @@ type
     function RightRotate(Node: PNode): PNode;
     function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
     function DeleteNode(Key: TKey; Node: PNode): PNode;
-    function Next(dir: Byte): Boolean;
     procedure ClearNode(Node: PNode);
   protected
     function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
@@ -125,33 +124,6 @@ begin
     end;
   end;
   Result := Node;
-end;
-
-function TTreap.Next(dir: Byte): Boolean;
-var
-  Node: PNode;
-begin
-  if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
-  while Enums.Count > 0 do begin
-    Node := Enums.Pop;
-    if Node = NullNode then Exit(False);
-    if Node = nil then begin
-      FCurrent := ENums.Pop;
-      Exit(True);
-    end else if dir = 0 then begin
-      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
-      Enums.Push(Node);
-      Enums.Push(nil);
-      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
-    end else begin
-      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
-      Enums.Push(Node);
-      Enums.Push(nil);
-      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
-    end;
-  end;
-  Direction := 0;
-  Result := False;
 end;
 
 procedure TTreap.ClearNode(Node: PNode);
@@ -247,7 +219,7 @@ end;
 
 function TTreap.Find(Key: TKey; out Rank: Cardinal): PNode;
 var
-  {%H-}Anchor: TKey;
+  Anchor: TKey;
 begin
   Result := RootNode;
   Rank := Result^.Count - Result^.Right^.Count;
@@ -342,8 +314,29 @@ begin
 end;
 
 function TTreap.MoveNext: Boolean;
+var
+  Node: PNode;
 begin
-  Result := Next(Direction);
+  if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
+  while Enums.Count > 0 do begin
+    Node := Enums.Pop;
+    if Node = NullNode then Exit(False);
+    if Node = nil then begin
+      FCurrent := ENums.Pop;
+      Exit(True);
+    end else if Direction = 0 then begin
+      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+      Enums.Push(Node);
+      Enums.Push(nil);
+      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+    end else begin
+      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+      Enums.Push(Node);
+      Enums.Push(nil);
+      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+    end;
+  end;
+  Direction := 0;
+  Result := False;
 end;
-
 end.
