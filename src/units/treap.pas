@@ -22,6 +22,8 @@ type
     Altered: Boolean;   //for Insert & Delete
     ProxyFor: TTreap;   //for enumeration
     Direction: Byte;    //for enumeration
+    StartNode: PNode;   //for enumeration
+    NodeCount: Integer; //for enumeration
     Enums: TStack;      //for enumeration
     FCurrent: PNode;    //for enumeration
     FComparator: TComparator;
@@ -35,14 +37,15 @@ type
     function DeleteNode(Key: TKey; Node: PNode): PNode;
     procedure ClearNode(Node: PNode);
   protected
-    function DefaultComparator({%H-}Key: TKey; Node: PNode): Integer; virtual;
-    procedure Disposer({%H-}Node: PNode); virtual;
+    function DefaultComparator(Key: TKey; Node: PNode): Integer; virtual;
+    procedure Disposer(Node: PNode); virtual;
   public
     property Comparator: TComparator read FComparator write FComparator;
     property Count: Integer read GetCount;
     property Item[Key: TKey]: PNode read GetNode; default;
     property Current: PNode read GetCurrent;
     function GetEnumerator: TTreap;
+    function Range(AStart: PNode; ACount: Integer): TTreap;
     function Reversed: TTreap;
     function MoveNext: Boolean;
     function Insert(Key: TKey; Value: TValue): Boolean;
@@ -194,6 +197,9 @@ begin
   RootNode := NullNode;
   FComparator := @DefaultComparator;
   Enums := TStack.Create;
+  Direction := 0;
+  StartNode := nil;
+  NodeCount := 0;
 end;
 
 destructor TTreap.Destroy;
@@ -250,7 +256,7 @@ begin
   Result := RootNode;
   r := Result^.Count - Result^.Right^.Count;
   while Result <> NullNode do begin
-    if Rank = r then Exit;
+    if Rank = r then Break;
     if Rank < r then begin
       Result := Result^.Left;
       r := r - Result^.Count + Result^.Left^.Count;
@@ -259,6 +265,7 @@ begin
       r := r + Result^.Count - Result^.Right^.Count;
     end;
   end;
+  if Result = NullNode then Result := nil;
 end;
 
 function TTreap.Value(Key: TKey; ADefault: TValue): TValue;
@@ -307,6 +314,13 @@ begin
   Result.ProxyFor := Self;
 end;
 
+function TTreap.Range(AStart: PNode; ACount: Integer): TTreap;
+begin
+  StartNode := AStart;
+  NodeCount := ACount + 1;
+  Result := Self;
+end;
+
 function TTreap.Reversed: TTreap;
 begin
   Direction := 1;
@@ -316,26 +330,40 @@ end;
 function TTreap.MoveNext: Boolean;
 var
   Node: PNode;
+  d: Integer;
 begin
   if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
   while Enums.Count > 0 do begin
     Node := Enums.Pop;
-    if Node = NullNode then Exit(False);
+    if Node = NullNode then Break;
     if Node = nil then begin
-      FCurrent := ENums.Pop;
-      Exit(True);
-    end else if Direction = 0 then begin
-      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
-      Enums.Push(Node);
-      Enums.Push(nil);
-      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+      Dec(NodeCount);
+      if NodeCount <> 0 then begin
+        FCurrent := Enums.Pop;
+        Exit(True);
+      end else Break;
     end else begin
-      if Node^.Left <> NullNode then Enums.Push(Node^.Left);
-      Enums.Push(Node);
-      Enums.Push(nil);
-      if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+      d := 0;
+      if StartNode <> nil then d := FComparator(Node^.Key, StartNode);
+      if Direction = 0 then begin
+        if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+        if d >= 0 then begin
+          Enums.Push(Node);
+          Enums.Push(nil);
+          if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+        end;
+      end else begin
+        if Node^.Left <> NullNode then Enums.Push(Node^.Left);
+        if d <= 0 then begin
+          Enums.Push(Node);
+          Enums.Push(nil);
+          if Node^.Right <> NullNode then Enums.Push(Node^.Right);
+        end;
+      end;
     end;
   end;
+  StartNode := nil;
+  NodeCount := 0;
   Direction := 0;
   Result := False;
 end;

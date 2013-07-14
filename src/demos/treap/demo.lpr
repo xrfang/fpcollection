@@ -41,8 +41,8 @@ begin
     Write(Format('%d=%s'#9, [i, n^.Key]));
   end;
   WriteLn;
-  Writeln('Get all items by enumerator...');
-  for n in tp do Write(n^.Key + ' ');
+  Writeln('Get 5 items since the 2nd item by enumerator...');
+  for n in tp.Range(tp.Fetch(2), 5) do Write(n^.Key + ' ');
   WriteLn;
   Writeln('Get all items reversed by enumerator...');
   for n in tp.Reversed do Write(n^.Key + ' ');
