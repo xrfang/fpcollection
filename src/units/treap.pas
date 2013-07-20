@@ -51,7 +51,7 @@ type
     function Insert(Key: TKey; Value: TValue): Boolean;
     function Delete(Key: TKey): Boolean;
     function Find(Key: TKey; out Rank: Cardinal): PNode;
-    function Fetch(Rank: Cardinal): PNode;
+    function Fetch(Rank: Integer): PNode;
     function Value(Key: TKey; ADefault: TValue): TValue;
     procedure Import(src: TTreap; Clean: Boolean = True);
     procedure Clear;
@@ -249,10 +249,12 @@ begin
   end;
 end;
 
-function TTreap.Fetch(Rank: Cardinal): PNode;
+function TTreap.Fetch(Rank: Integer): PNode;
 var
   r: Cardinal;
 begin
+  if Rank = 0 then Exit(nil);
+  if Rank < 0 then Rank := Count + 1 + Rank;
   Result := RootNode;
   r := Result^.Count - Result^.Right^.Count;
   while Result <> NullNode do begin

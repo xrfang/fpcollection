@@ -44,8 +44,8 @@ begin
   Writeln('Get 5 items since the 2nd item by enumerator...');
   for n in tp.Range(tp.Fetch(2), 5) do Write(n^.Key + ' ');
   WriteLn;
-  Writeln('Get all items reversed by enumerator...');
-  for n in tp.Reversed do Write(n^.Key + ' ');
+  Writeln('Get 4 items from the last item reversed by enumerator...');
+  with tp do for n in Reversed.Range(Fetch(-1), 4) do Write(n^.Key + ' ');
   WriteLn;
   WriteLn('# of items: ' + IntToStr(tp.Count));
   mv := -1;
