@@ -253,8 +253,8 @@ function TTreap.Fetch(Rank: Integer): PNode;
 var
   r: Cardinal;
 begin
-  if Rank = 0 then Exit(nil);
   if Rank < 0 then Rank := Count + 1 + Rank;
+  if (Rank = 0) or (Rank > Count) then Exit(nil);
   Result := RootNode;
   r := Result^.Count - Result^.Right^.Count;
   while Result <> NullNode do begin
