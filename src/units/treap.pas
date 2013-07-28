@@ -45,7 +45,7 @@ type
     property Item[Key: TKey]: PNode read GetNode; default;
     property Current: PNode read GetCurrent;
     function GetEnumerator: TTreap;
-    function Range(AStart: PNode; ACount: Integer): TTreap;
+    function Range(ACount: Integer; AStart: PNode = nil): TTreap;
     function Reversed: TTreap;
     function MoveNext: Boolean;
     function Insert(Key: TKey; Value: TValue): Boolean;
@@ -316,9 +316,14 @@ begin
   Result.ProxyFor := Self;
 end;
 
-function TTreap.Range(AStart: PNode; ACount: Integer): TTreap;
+function TTreap.Range(ACount: Integer; AStart: PNode): TTreap;
 begin
-  StartNode := AStart;
+  if AStart <> nil then
+    StartNode := AStart
+  else if Direction = 0 then
+    StartNode := Fetch(1)
+  else
+    StartNode := Fetch(-1);
   NodeCount := ACount + 1;
   Result := Self;
 end;
