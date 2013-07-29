@@ -27,7 +27,10 @@ begin
   for c := 'A' to 'Z' do begin
     if Random < 0.5 then tp.Insert(c, Random(100));
   end;
-  WriteLn('Show ranks of all keys...');
+  WriteLn('Show rank (0 if not found) of all keys...');
+  for c := 'A' to 'Z' do Write(Format('%s=%d'#9, [c, tp.Rank(c)]));
+  WriteLn;
+  WriteLn('Show rank (@) or insert position (>) of all keys');
   for c := 'A' to 'Z' do begin
     if tp.Find(c, r) = nil then begin
       Write(Format('%s>%d'#9, [c, r]));
