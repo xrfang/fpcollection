@@ -53,7 +53,8 @@ type
     function Find(Key: TKey; out Rank: Cardinal): PNode;
     function Fetch(Rank: Integer): PNode;
     function Rank(Key: TKey): Cardinal;
-    function Value(Key: TKey; ADefault: TValue): TValue;
+    function ValueAt(ARank: Integer; ADefault: TValue): TValue;
+    function ValueOf(Key: TKey; ADefault: TValue): TValue;
     procedure Import(src: TTreap; Clean: Boolean = True);
     procedure Clear;
     constructor Create; virtual;
@@ -279,7 +280,16 @@ begin
   if n = nil then Result := 0;
 end;
 
-function TTreap.Value(Key: TKey; ADefault: TValue): TValue;
+function TTreap.ValueAt(ARank: Integer; ADefault: TValue): TValue;
+var
+  n: PNode;
+begin
+  n := Fetch(ARank);
+  if n = nil then Exit(ADefault);
+  Exit(n^.Value);
+end;
+
+function TTreap.ValueOf(Key: TKey; ADefault: TValue): TValue;
 var
   n: PNode;
 begin

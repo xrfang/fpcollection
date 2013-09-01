@@ -61,7 +61,7 @@ begin
   end;
   WriteLn;
   WriteLn(Format('Max=%d at %s', [mv, mk]));
-  WriteLn('X is ', tp.Value('X', -65536));
+  WriteLn('X is ', tp.ValueOf('X', -65536));
   WriteLn('x is ' + BoolToStr(tp.Delete('x'), 'Deleted', 'Not Found'));
   WriteLn('# of items: ' + IntToStr(tp.Count));
   WriteLn('X is ' + BoolToStr(tp.Delete('X'), 'Deleted', 'Not Found'));
