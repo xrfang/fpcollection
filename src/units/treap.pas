@@ -30,7 +30,6 @@ type
     function GetCount: Integer;
     function GetCurrent: PNode;
     procedure SetCount(Node: PNode);
-    function GetNode(Key: TKey): PNode;
     function LeftRotate(Node: PNode): PNode;
     function RightRotate(Node: PNode): PNode;
     function InsertNode(Key: TKey; Value: TValue; Node: PNode): PNode;
@@ -42,7 +41,6 @@ type
   public
     property Comparator: TComparator read FComparator write FComparator;
     property Count: Integer read GetCount;
-    property Item[Key: TKey]: PNode read GetNode; default;
     property Current: PNode read GetCurrent;
     function GetEnumerator: TTreap;
     function Range(ACount: Integer; AStart: PNode = nil): TTreap;
@@ -172,13 +170,6 @@ begin
   Node^.Count := Node^.Left^.Count + Node^.Right^.Count + 1;
 end;
 
-function TTreap.GetNode(Key: TKey): PNode;
-var
-  r: Cardinal;
-begin
-  Result := Find(Key, @r);
-end;
-
 function TTreap.RightRotate(Node: PNode): PNode;
 begin
   Result := Node^.Right;
@@ -295,7 +286,7 @@ function TTreap.ValueOf(Key: TKey; ADefault: TValue): TValue;
 var
   n: PNode;
 begin
-  n := GetNode(Key);
+  n := Find(Key);
   if n = nil then Exit(ADefault);
   Exit(n^.Value);
 end;
