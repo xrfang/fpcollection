@@ -32,7 +32,7 @@ begin
   WriteLn;
   WriteLn('Show rank (@) or insert position (>) of all keys');
   for c := 'A' to 'Z' do begin
-    if tp.Find(c, r) = nil then begin
+    if tp.Find(c, @r) = nil then begin
       Write(Format('%s>%d'#9, [c, r]));
     end else
       Write(Format('%s@%d'#9, [c, r]));

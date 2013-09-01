@@ -50,7 +50,7 @@ type
     function MoveNext: Boolean;
     function Insert(Key: TKey; Value: TValue): Boolean;
     function Delete(Key: TKey): Boolean;
-    function Find(Key: TKey; out Rank: Cardinal): PNode;
+    function Find(Key: TKey; PRank: PCardinal = nil): PNode;
     function Fetch(Rank: Integer): PNode;
     function Rank(Key: TKey): Cardinal;
     function ValueAt(ARank: Integer; ADefault: TValue): TValue;
@@ -176,7 +176,7 @@ function TTreap.GetNode(Key: TKey): PNode;
 var
   r: Cardinal;
 begin
-  Result := Find(Key, r);
+  Result := Find(Key, @r);
 end;
 
 function TTreap.RightRotate(Node: PNode): PNode;
@@ -225,30 +225,32 @@ begin
   Result := Altered;
 end;
 
-function TTreap.Find(Key: TKey; out Rank: Cardinal): PNode;
+function TTreap.Find(Key: TKey; PRank: PCardinal): PNode;
 var
   Anchor: TKey;
+  r: Cardinal;
 begin
   Result := RootNode;
-  Rank := Result^.Count - Result^.Right^.Count;
+  r := Result^.Count - Result^.Right^.Count;
   repeat
     Anchor := Result^.Key;
     case FComparator(Key, Result) of
       -1: begin
         Result := Result^.Left;
-        Rank := Rank - Result^.Count + Result^.Left^.Count;
+        r := r - Result^.Count + Result^.Left^.Count;
       end;
       1: begin
         Result := Result^.Right;
-        Rank := Rank + Result^.Count - Result^.Right^.Count;
+        r := r + Result^.Count - Result^.Right^.Count;
       end;
       else Break;
     end;
   until Result = NullNode;
   if Result = NullNode then begin
-    if (Rank = 0) or (Anchor < Key) then Rank += 1;
+    if (r = 0) or (Anchor < Key) then r += 1;
     Result := nil;
   end;
+  if PRank <> nil then PRank^ := r;
 end;
 
 function TTreap.Fetch(Rank: Integer): PNode;
@@ -276,7 +278,7 @@ function TTreap.Rank(Key: TKey): Cardinal;
 var
   n: PNode;
 begin
-  n := Find(Key, Result);
+  n := Find(Key, @Result);
   if n = nil then Result := 0;
 end;
 
