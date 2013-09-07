@@ -84,5 +84,13 @@ begin
   WriteLn(Format('Max=%d at %s', [mv, mk]));
   tp.Clear;
   WriteLn(Format('After Clear(), # of items=%d', [tp.Count]));
+  WriteLn('Testing delete while traversing...');
+  WriteLn('Populate treap with alphabets.');
+  for c := 'A' to 'Z' do tp.Insert(c, Ord(c));
+  WriteLn('Treap now has ' + IntToStr(tp.Count) + ' Items.');
+  WriteLn('Removing items with odd values.');
+  for n in tp do if n^.Value mod 2 = 1 then tp.Delete(n^.Key);
+  WriteLn('After removing, treap has ' + IntToStr(tp.Count) + ' Items:');
+  for n in tp do WriteLn(Format('Key=%s, Value=%d', [n^.Key, n^.Value]));
   tp.Free;
 end.
