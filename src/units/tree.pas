@@ -23,7 +23,7 @@ type
     function Previous: TTree;
     function PreviousSibling: TTree;
     function Root: TTree;
-    constructor Create(AData: T; AParent: TTree);
+    constructor Create(AData: T; AParent: TTree; APos: Integer = -1);
     destructor Destroy; override;
     function Remove(ANewParent: TTree = nil; APos: Integer = -1): TTree;
   end;
@@ -113,14 +113,17 @@ begin
   end;
 end;
 
-constructor TTree.Create(AData: T; AParent: TTree);
+constructor TTree.Create(AData: T; AParent: TTree; APos: Integer);
 begin
   Data := AData;
   FItems := TFPList.Create;
   FParent := AParent;
   if FParent <> nil then begin
     FLevel := FParent.FLevel + 1;
-    FParent.FItems.Add(Self);
+    with FParent.FItems do if (APos >= 0) and (APos < Count) then
+      Insert(APos, Self)
+    else
+      Add(Self);
   end else FLevel := 0;
 end;
 

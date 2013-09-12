@@ -24,8 +24,12 @@ begin
   tr := TStringTree.Create('n12', tr);
   TStringTree.Create('n121', tr);
   tr := tr.Root;
-  TStringTree.Create('n21', TStringTree.Create('n2', tr));
   TStringTree.Create('n3', tr);
+  WriteLn('Now we have n1 and n3 added as children of ROOT.');
+  PrintTree(tr);
+  WriteLn('Insert n2 to be the second child of ROOT...');
+  TStringTree.Create('n21', TStringTree.Create('n2', tr, 1));
+  PrintTree(tr);
   WriteLn('Number of nodes in the tree: ', tr.Root.Descendants + 1);
   WriteLn('Iterating through children of the ROOT node... ');
   root := tr.Root;
@@ -37,8 +41,6 @@ begin
     tr := tr.NextSibling;
   end;
   WriteLn;
-  tr := root;
-  PrintTree(tr);
   WriteLn('Prune node n12...');
   tr := root.FirstChild.FirstChild.Next;
   WriteLn('Confirm: node to prune is "', tr.Data, '"');
