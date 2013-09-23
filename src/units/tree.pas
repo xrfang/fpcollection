@@ -9,10 +9,10 @@ type
   private
     FItems: TFPList;
     FParent: TTree;
-    FLevel: Cardinal;
+    function GetLevel: Cardinal;
   public
     Data: T;
-    property Level: Cardinal read FLevel;
+    property Level: Cardinal read GetLevel;
     property Parent: TTree read FParent;
     function Children: Cardinal;
     function Descendants: Cardinal;
@@ -34,6 +34,18 @@ function TTree.Root: TTree;
 begin
   Result := Self;
   while Result.Parent <> nil do Result := Result.Parent;
+end;
+
+function TTree.GetLevel: Cardinal;
+var
+  n: TTree;
+begin
+  Result := 0;
+  n := Self.Parent;
+  while n <> nil do begin
+    Inc(Result);
+    n := n.Parent;
+  end;
 end;
 
 function TTree.Children: Cardinal;
@@ -118,13 +130,9 @@ begin
   Data := AData;
   FItems := TFPList.Create;
   FParent := AParent;
-  if FParent <> nil then begin
-    FLevel := FParent.FLevel + 1;
-    with FParent.FItems do if (APos >= 0) and (APos < Count) then
-      Insert(APos, Self)
-    else
-      Add(Self);
-  end else FLevel := 0;
+  if FParent <> nil then with FParent.FItems do
+    if (APos >= 0) and (APos < Count) then Insert(APos, Self)
+    else Add(Self);
 end;
 
 destructor TTree.Destroy;
@@ -140,15 +148,12 @@ begin
   if FParent <> nil then begin
     FParent.FItems.Remove(Self);
     FParent := nil;
-    FLevel := 0;
   end;
   if ANewParent <> nil then begin
     FParent := ANewParent;
-    FLevel := FParent.Level + 1;
-    with FParent.FItems do if (APos >= 0) and (APos < Count) then
-      Insert(APos, Self)
-    else
-      Add(Self);
+    with FParent.FItems do
+      if (APos >= 0) and (APos < Count) then Insert(APos, Self)
+      else Add(Self);
   end;
   Exit(Self);
 end;
