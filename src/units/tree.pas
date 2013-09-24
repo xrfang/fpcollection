@@ -9,10 +9,8 @@ type
   private
     FItems: TFPList;
     FParent: TTree;
-    function GetLevel: Cardinal;
   public
     Data: T;
-    property Level: Cardinal read GetLevel;
     property Parent: TTree read FParent;
     constructor Create(AData: T; AParent: TTree; APos: Integer = -1);
     destructor Destroy; override;
@@ -21,6 +19,7 @@ type
     function Descendants: Cardinal;
     function FirstChild: TTree;
     function LastChild: TTree;
+    function Level: Cardinal;
     function Next: TTree;
     function NextSibling: TTree;
     function Previous: TTree;
@@ -37,7 +36,7 @@ begin
   while Result.Parent <> nil do Result := Result.Parent;
 end;
 
-function TTree.GetLevel: Cardinal;
+function TTree.Level: Cardinal;
 var
   n: TTree;
 begin
