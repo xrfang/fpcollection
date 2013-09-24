@@ -14,7 +14,10 @@ type
     Data: T;
     property Level: Cardinal read GetLevel;
     property Parent: TTree read FParent;
+    constructor Create(AData: T; AParent: TTree; APos: Integer = -1);
+    destructor Destroy; override;
     function Children: Cardinal;
+    function Clone: TTree;
     function Descendants: Cardinal;
     function FirstChild: TTree;
     function LastChild: TTree;
@@ -22,10 +25,8 @@ type
     function NextSibling: TTree;
     function Previous: TTree;
     function PreviousSibling: TTree;
-    function Root: TTree;
-    constructor Create(AData: T; AParent: TTree; APos: Integer = -1);
-    destructor Destroy; override;
     function Remove(ANewParent: TTree = nil; APos: Integer = -1): TTree;
+    function Root: TTree;
   end;
 
 implementation
@@ -51,6 +52,18 @@ end;
 function TTree.Children: Cardinal;
 begin
   Result := FItems.Count;
+end;
+
+function TTree.Clone: TTree;
+var
+  node: TTree;
+begin
+  Result := TTree.Create(Data, FParent);
+  node := FirstChild;
+  while node <> nil do begin
+    node.Clone.Remove(Result);
+    node := node.NextSibling;
+  end;
 end;
 
 function TTree.Descendants: Cardinal;

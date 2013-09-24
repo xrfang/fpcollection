@@ -15,7 +15,7 @@ begin
 end;
 
 var
-  root, tr: TStringTree;
+  root, tr, tr2: TStringTree;
 begin
   WriteLn('Populating tree with demo data.');
   tr := TStringTree.Create('root', nil);
@@ -27,9 +27,18 @@ begin
   TStringTree.Create('n3', tr);
   WriteLn('Now we have n1 and n3 added as children of ROOT.');
   PrintTree(tr);
+  WriteLn('Clone the tree to a new one.');
+  tr2 := tr.Clone;
+  PrintTree(tr2);
+  tr2.Free;
+  WriteLn('Freed the cloned tree.');
   WriteLn('Insert n2 to be the second child of ROOT...');
   TStringTree.Create('n21', TStringTree.Create('n2', tr, 1));
-  PrintTree(tr);
+  WriteLn('Clone node n2...');
+  tr := tr.Root.FirstChild.NextSibling;
+  WriteLn('Confirm: node to clone is "', tr.Data, '"');
+  tr.Clone;
+  PrintTree(tr.Root);
   WriteLn('Number of nodes in the tree: ', tr.Root.Descendants + 1);
   WriteLn('Iterating through children of the ROOT node... ');
   root := tr.Root;
