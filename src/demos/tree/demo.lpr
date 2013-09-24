@@ -1,7 +1,7 @@
 program demo;
 {$mode objfpc}{$H+}
 uses
-  Classes, tree;
+  Classes, sysutils, tree;
 type
   TStringTree = specialize TTree<string>;
 
@@ -9,7 +9,7 @@ procedure PrintTree(root: TStringTree);
 begin
   WriteLn('Iterating through all nodes...');
   while root <> nil do begin
-    WriteLn(StringOfChar(' ', root.Level * 2), root.Data);
+    WriteLn(Format('%s[%d] %s', [StringOfChar(' ', root.Level * 2), root.Rank, root.Data]));
     root := root.Next;
   end;
 end;
