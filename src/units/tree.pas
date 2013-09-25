@@ -18,8 +18,11 @@ type
     function Clone: TTree;
     function Descendants: Cardinal;
     function FirstChild: TTree;
+    function FirstSibling: TTree;
     function Rank: Cardinal;
     function LastChild: TTree;
+    function LastDescendant: TTree;
+    function LastSibling: TTree;
     function Level: Cardinal;
     function Next: TTree;
     function NextSibling: TTree;
@@ -81,15 +84,35 @@ begin
   Exit(TSelfType(FItems[0]));
 end;
 
+function TTree.FirstSibling: TTree;
+begin
+  if FParent = nil then Exit(nil);
+  Result := FParent.FirstChild;
+end;
+
 function TTree.Rank: Cardinal;
 begin
   if FParent = nil then Exit(0) else Exit(FParent.FItems.IndexOf(Self) + 1);
+end;
+
+function TTree.LastDescendant: TTree;
+var
+  p: TTree;
+begin
+  p := Self;
+  while True do if p.LastChild = nil then Exit(p) else p := p.LastChild;
 end;
 
 function TTree.LastChild: TTree;
 begin
   if FItems.Count = 0 then Exit(nil);
   Exit(TSelfType(FItems[FItems.Count - 1]));
+end;
+
+function TTree.LastSibling: TTree;
+begin
+  if FParent = nil then Exit(nil);
+  Result := FParent.LastChild;
 end;
 
 function TTree.Next: TTree;

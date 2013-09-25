@@ -40,6 +40,13 @@ begin
   tr.Clone;
   PrintTree(tr.Root);
   WriteLn('Number of nodes in the tree: ', tr.Root.Descendants + 1);
+  tr := tr.Root.FirstChild;
+  WriteLn('Last descendant of node "', tr.Data, '" is: ',
+    tr.LastDescendant.Data, ', whose rank is: ', tr.LastDescendant.Rank);
+  WriteLn('First sibling of node "', tr.Data, '" is: ', tr.FirstSibling.Data,
+    ', whose rank is: ', tr.FirstSibling.Rank);
+  WriteLn('Last sibling of node "', tr.Data, '" is: ', tr.LastSibling.Data,
+    ', whose rank is: ', tr.LastSibling.Rank);
   WriteLn('Iterating through children of the ROOT node... ');
   root := tr.Root;
   tr := root;
