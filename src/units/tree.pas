@@ -4,7 +4,7 @@ interface
 uses Classes;
 type
   generic TTree<T> = class
-  public type
+  private type
     TSelfType = TTree;
   private
     FItems: TFPList;
