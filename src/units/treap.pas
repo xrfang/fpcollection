@@ -4,7 +4,7 @@ interface
 uses contnrs;
 type
   generic TTreap<TKey, TValue> = class
-  type
+  public type
     PNode = ^TNode;
     TNode = record
       Count: Cardinal;
@@ -14,8 +14,7 @@ type
       Left, Right: PNode;
     end;
     TComparator = function(Key: TKey; Node: PNode): Integer of object;
-  private
-  const
+  private const
     MAX_PRIORITY = $7FFFFFFF;
   private
     NullNode, RootNode: PNode;
