@@ -19,7 +19,6 @@ type
     function Descendants: Cardinal;
     function FirstChild: TTree;
     function FirstSibling: TTree;
-    function Rank: Cardinal;
     function LastChild: TTree;
     function LastDescendant: TTree;
     function LastSibling: TTree;
@@ -28,6 +27,8 @@ type
     function NextSibling: TTree;
     function Previous: TTree;
     function PreviousSibling: TTree;
+    procedure PurgeChildren;
+    function Rank: Cardinal;
     function Remove(ANewParent: TTree = nil; APos: Integer = -1): TTree;
     function Root: TTree;
   end;
@@ -166,6 +167,11 @@ begin
   end;
 end;
 
+procedure TTree.PurgeChildren;
+begin
+  while LastChild <> nil do LastChild.Free;
+end;
+
 constructor TTree.Create(AData: T; AParent: TTree; APos: Integer);
 begin
   Data := AData;
@@ -177,10 +183,9 @@ begin
 end;
 
 destructor TTree.Destroy;
-var
-  i: Integer;
 begin
-  for i := 0 to FItems.Count - 1 do TTree(FItems[i]).Free;
+  Remove;
+  with FItems do while Count > 0 do TTree(FItems[Count - 1]).Free;
   FItems.Free;
 end;
 

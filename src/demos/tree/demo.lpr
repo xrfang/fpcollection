@@ -40,7 +40,16 @@ begin
   tr.Clone;
   PrintTree(tr.Root);
   WriteLn('Number of nodes in the tree: ', tr.Root.Descendants + 1);
-  tr := tr.Root.FirstChild;
+  tr := tr.Root.LastChild;
+  WriteLn('Purge Children of node: ', tr.Data);
+  tr.PurgeChildren;
+  PrintTree(tr.Root);
+  root := tr.Root;
+  tr := tr.Root.FirstChild.NextSibling;
+  WriteLn('Purge second child of root node: ', tr.Data);
+  tr.Free;
+  PrintTree(root);
+  tr := root.FirstChild;
   WriteLn('Last descendant of node "', tr.Data, '" is: ',
     tr.LastDescendant.Data, ', whose rank is: ', tr.LastDescendant.Rank);
   WriteLn('First sibling of node "', tr.Data, '" is: ', tr.FirstSibling.Data,
@@ -57,15 +66,8 @@ begin
     tr := tr.NextSibling;
   end;
   WriteLn;
-  WriteLn('Prune node n12...');
-  tr := root.FirstChild.FirstChild.Next;
-  WriteLn('Confirm: node to prune is "', tr.Data, '"');
-  tr.Remove.Free;
-  tr := root;
-  WriteLn('Number of nodes after prune is: ', tr.Descendants + 1);
-  PrintTree(tr);
-  WriteLn('Move node n21 to be the second child of ROOT...');
-  tr := root.FirstChild.NextSibling.FirstChild;
+  WriteLn('Move node n12 to be the second child of ROOT...');
+  tr := root.FirstChild.FirstChild.NextSibling;
   WriteLn('Confirm: node to move is "', tr.Data, '"');
   tr.Remove(root, 1);
   WriteLn('Number of children of ROOT is: ', root.Children);
