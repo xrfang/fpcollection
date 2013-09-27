@@ -9,6 +9,8 @@ type
   private
     FItems: TFPList;
     FParent: TTree;
+  protected
+    procedure DoClone(Target: TTree);
   public
     Data: T;
     property Parent: TTree read FParent;
@@ -35,6 +37,17 @@ type
 
 implementation
 
+procedure TTree.DoClone(Target: TTree);
+var
+  node: TTree;
+begin
+  node := FirstChild;
+  while node <> nil do begin
+    node.Clone.Remove(Target);
+    node := node.NextSibling;
+  end;
+end;
+
 function TTree.Root: TTree;
 begin
   Result := Self;
@@ -59,15 +72,9 @@ begin
 end;
 
 function TTree.Clone: TTree;
-var
-  node: TTree;
 begin
   Result := TTree.Create(Data, FParent);
-  node := FirstChild;
-  while node <> nil do begin
-    node.Clone.Remove(Result);
-    node := node.NextSibling;
-  end;
+  DoClone(Result);
 end;
 
 function TTree.Descendants: Cardinal;
