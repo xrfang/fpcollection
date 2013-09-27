@@ -14,7 +14,7 @@ type
   public
     Data: T;
     property Parent: TTree read FParent;
-    constructor Create(AData: T; AParent: TTree; APos: Integer = -1);
+    constructor Create(AData: T; AParent: TTree; APos: Integer = -1); virtual;
     destructor Destroy; override;
     function Children: Cardinal;
     function Clone: TTree;
