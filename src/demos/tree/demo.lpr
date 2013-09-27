@@ -42,7 +42,7 @@ begin
   WriteLn('Number of nodes in the tree: ', tr.Root.Descendants + 1);
   tr := tr.Root.LastChild;
   WriteLn('Purge Children of node: ', tr.Data);
-  tr.PurgeChildren;
+  tr.Clear;
   PrintTree(tr.Root);
   root := tr.Root;
   tr := tr.Root.FirstChild.NextSibling;

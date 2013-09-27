@@ -29,7 +29,7 @@ type
     function NextSibling: TTree;
     function Previous: TTree;
     function PreviousSibling: TTree;
-    procedure PurgeChildren;
+    procedure Clear;
     function Rank: Cardinal;
     function Remove(ANewParent: TTree = nil; APos: Integer = -1): TTree;
     function Root: TTree;
@@ -174,7 +174,7 @@ begin
   end;
 end;
 
-procedure TTree.PurgeChildren;
+procedure TTree.Clear;
 begin
   while LastChild <> nil do LastChild.Free;
 end;
