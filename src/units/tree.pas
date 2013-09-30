@@ -4,19 +4,21 @@ interface
 uses Classes;
 type
   generic TTree<T> = class
-  private type
+  protected type
     TSelfType = TTree;
+    TSelfClass = class of TSelfType;
   private
     FItems: TFPList;
     FParent: TTree;
   protected
-    procedure DoClone(Target: TTree);
+    procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
   public
     Data: T;
     property Parent: TTree read FParent;
     constructor Create(AData: T; AParent: TTree; APos: Integer = -1); virtual;
     destructor Destroy; override;
     function Children: Cardinal;
+    procedure Clear;
     function Clone: TTree;
     function Descendants: Cardinal;
     function FirstChild: TTree;
@@ -29,24 +31,12 @@ type
     function NextSibling: TTree;
     function Previous: TTree;
     function PreviousSibling: TTree;
-    procedure Clear;
     function Rank: Cardinal;
     function Remove(ANewParent: TTree = nil; APos: Integer = -1): TTree;
     function Root: TTree;
   end;
 
 implementation
-
-procedure TTree.DoClone(Target: TTree);
-var
-  node: TTree;
-begin
-  node := FirstChild;
-  while node <> nil do begin
-    node.Clone.Remove(Target);
-    node := node.NextSibling;
-  end;
-end;
 
 function TTree.Root: TTree;
 begin
@@ -72,9 +62,17 @@ begin
 end;
 
 function TTree.Clone: TTree;
+var
+  nsrc, ndup: TTree;
 begin
-  Result := TTree.Create(Data, FParent);
-  DoClone(Result);
+  Result := TSelfClass(Self.ClassType).Create(Data, FParent);
+  nsrc := FirstChild;
+  while nsrc <> nil do begin
+    ndup := nsrc.Clone;
+    if ndup <> nil then ndup.Remove(Result);
+    nsrc := nsrc.NextSibling;
+  end;
+  DoClone(Self, Result);
 end;
 
 function TTree.Descendants: Cardinal;
@@ -177,6 +175,11 @@ end;
 procedure TTree.Clear;
 begin
   while LastChild <> nil do LastChild.Free;
+end;
+
+procedure TTree.DoClone(Source: TSelfType; var Target: TSelfType);
+begin
+  (* empty *)
 end;
 
 constructor TTree.Create(AData: T; AParent: TTree; APos: Integer);
