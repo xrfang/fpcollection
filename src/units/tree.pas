@@ -22,6 +22,7 @@ type
     function Clone: TTree;
     function Descendants: Cardinal;
     function FirstChild: TTree;
+    function FirstDescendant: TTree;
     function FirstSibling: TTree;
     function LastChild: TTree;
     function LastDescendant: TTree;
@@ -88,6 +89,14 @@ function TTree.FirstChild: TTree;
 begin
   if FItems.Count = 0 then Exit(nil);
   Exit(TSelfType(FItems[0]));
+end;
+
+function TTree.FirstDescendant: TTree;
+var
+  p: TTree;
+begin
+  p := Self;
+  while True do if p.FirstChild = nil then Exit(p) else p := p.FirstChild;
 end;
 
 function TTree.FirstSibling: TTree;

@@ -49,6 +49,8 @@ begin
   WriteLn('Purge second child of root node: ', tr.Data);
   tr.Free;
   PrintTree(root);
+  WriteLn('First descendant of ROOT is: ', root.FirstDescendant.Data,
+    ', whose rank is: ', root.FirstDescendant.Rank);
   tr := root.FirstChild;
   WriteLn('Last descendant of node "', tr.Data, '" is: ',
     tr.LastDescendant.Data, ', whose rank is: ', tr.LastDescendant.Rank);
