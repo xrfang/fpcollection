@@ -17,6 +17,7 @@ type
     property Parent: TTree read FParent;
     constructor Create(AData: T; AParent: TTree; APos: Integer = -1); virtual;
     destructor Destroy; override;
+    function ChildAt(Rank: Cardinal): TTree;
     function Children: Cardinal;
     procedure Clear;
     function Clone: TTree;
@@ -206,6 +207,15 @@ begin
   Remove;
   with FItems do while Count > 0 do TTree(FItems[Count - 1]).Free;
   FItems.Free;
+end;
+
+function TTree.ChildAt(Rank: Cardinal): TTree;
+var
+  idx: Integer;
+begin
+  idx := Rank - 1;
+  if (idx < 0) or (idx >= FItems.Count) then Exit(nil);
+  Exit(TSelfType(FItems[idx]));
 end;
 
 function TTree.Remove(ANewParent: TTree; APos: Integer): TTree;
