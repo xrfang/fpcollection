@@ -32,6 +32,7 @@ type
     constructor Create(ADefault: T); virtual;
     destructor Destroy; override;
     procedure Append(AValue: T);
+    procedure Clear(Init: Boolean = False);
     procedure LTrim(AValue: Integer);
     procedure RTrim(AValue: Integer);
     procedure Sort(Options: SortOptions = []; gcomp: PCardinal = nil; gswap: PCardinal = nil);
@@ -71,7 +72,7 @@ begin
   if soReversed in Options then order := 1 else order := -1;
   while (gap > 1) or swapped do begin
     gap := trunc(gap / 1.3);
-    if gap < 1 then gap := 1;
+    if gap in [9, 10] then gap := 11 else if gap < 1 then gap := 1;
     swapped := False;
     for i := 0 to FCount - 1 - gap do begin
       needswap := False;
@@ -177,6 +178,15 @@ end;
 procedure TVector.Append(AValue: T);
 begin
   Item[FCount] := AValue;
+end;
+
+procedure TVector.Clear(Init: Boolean);
+begin
+  FCount := 0;
+  if Init then begin
+    FCapacity := 64;
+    SetLength(FData, 64);
+  end;
 end;
 
 procedure TVector.LTrim(AValue: Integer);
