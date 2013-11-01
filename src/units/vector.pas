@@ -35,7 +35,7 @@ type
     procedure Clear(Init: Boolean = False);
     procedure LTrim(AValue: Integer);
     procedure RTrim(AValue: Integer);
-    procedure Sort(Options: SortOptions = []; gcomp: PCardinal = nil; gswap: PCardinal = nil);
+    procedure Sort(Options: SortOptions = []);
   end;
 
 implementation
@@ -59,55 +59,63 @@ begin
   FCount := AValue;
 end;
 
-procedure TVector.Sort(Options: SortOptions; gcomp, gswap: PCardinal);
+procedure TVector.Sort(Options: SortOptions);
 var
-  i, gap, order, min, max, pos: Integer;
-  g1, g2: Cardinal;
+  i, gap, order, first, last, pos: Integer;
   Temp: T;
-  needswap, swapped: Boolean;
 begin
-  g1 := 0; g2 := 0;
-  gap := FCount;
-  swapped := True;
   if soReversed in Options then order := 1 else order := -1;
-  while (gap > 1) or swapped do begin
+  //comb sort for large gaps
+  gap := FCount;
+  while gap > 10 do begin
     gap := trunc(gap / 1.3);
-    if gap in [9, 10] then gap := 11 else if gap < 1 then gap := 1;
-    swapped := False;
+    if gap in [9, 10] then gap := 11;
     for i := 0 to FCount - 1 - gap do begin
-      needswap := False;
-      if soEliminateNA in Options then begin
-        if FData[i + gap] = FDefault then Continue;
-        if FData[i] = FDefault then needswap := True;
-      end;
-      if not needswap then begin
-        Inc(g1);
-        needswap := order * OnSort(FData[i], FData[i + gap]) < 0;
-      end;
-      if needswap then begin
-        Inc(g2);
+      if ((soEliminateNA in Options) and (FData[i + gap] <> FDefault) and
+          (FData[i] = FDefault)) or
+         (order * OnSort(FData[i], FData[i + gap]) < 0) then begin
         Temp := FData[i];
         FData[i] := FData[i + gap];
         FData[i + gap] := Temp;
-        swapped := True;
       end;
     end;
   end;
-  if gcomp <> nil then gcomp^ := g1;
-  if gswap <> nil then gswap^ := g2;
+  //fallback to (optimized) gnome sort for small gaps
+  pos := 1;
+  last := 0;
+  while pos < FCount do begin
+    if ((soEliminateNA in Options) and (FData[pos] <> FDefault) and
+        (FData[pos - 1] = FDefault)) or
+       (order * OnSort(FData[pos - 1], FData[pos]) < 0) then begin
+      Temp := FData[pos];
+      FData[pos] := FData[pos - 1];
+      FData[pos - 1] := Temp;
+      if pos > 1 then begin
+        if last = 0 then last := pos;
+        Dec(pos);
+      end else Inc(pos);
+    end else begin
+      if last <> 0 then begin
+        pos := last;
+        last := 0;
+      end;
+      Inc(pos);
+    end;
+  end;
+  //eliminate N/A values
   if soEliminateNA in Options then begin
-     min := 0;
-     max := FCount - 1;
-     if FData[max] <> FDefault then Exit;
-     if FData[min] = FDefault then begin
+     first := 0;
+     last := FCount - 1;
+     if FData[last] <> FDefault then Exit;
+     if FData[first] = FDefault then begin
        FCount := 0;
        Exit;
      end;
-     while max > min do begin
-       pos := (min + max) div 2;
-       if FData[pos] = FDefault then max := pos - 1 else min := pos + 1;
+     while last > first do begin
+       pos := (first + last) div 2;
+       if FData[pos] = FDefault then last := pos - 1 else first := pos + 1;
      end;
-     if FData[max] = FDefault then FCount := max else FCount := max + 1;
+     if FData[last] = FDefault then FCount := last else FCount := last + 1;
   end;
 end;
 
