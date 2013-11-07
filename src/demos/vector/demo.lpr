@@ -25,7 +25,7 @@ begin
 end;
 
 var
-  iv : TIntVector;
+  iv, iv2 : TIntVector;
   i : Integer;
   ans: string;
   r: TIntVector.DataType;
@@ -63,10 +63,14 @@ begin
   WriteLn('Sort iv reversed, eliminating NA values...');
   iv.Sort([soReversed, soEliminateNA]);
   Dump(iv);
+  iv2 := TIntVector(iv.Clone);
   iv.Free;
   WriteLn('r is still accessible after iv is Destroyed, its content is unchanged:');
   WriteLn('count=', Length(r));
   for i := 0 to Length(r) - 1 do Write(r[i], #9);
   WriteLn;
+  WriteLn('Clone of iv:');
+  Dump(iv2);
+  iv2.Free;
 end.
 

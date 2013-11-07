@@ -6,6 +6,8 @@ type
   EFrozenVector = class(Exception);
   generic TVector<T> = class
   type
+    TSelfType = TVector;
+    TSelfClass = class of TSelfType;
     DataType = array of T;
     SortOption = (soReversed, soEliminateNA);
     SortOptions = set of SortOption;
@@ -31,6 +33,7 @@ type
     property Raw: DataType read FData;
     constructor Create(ADefault: T); virtual;
     destructor Destroy; override;
+    function Clone: TVector;
     procedure Append(AValue: T);
     procedure Clear(Init: Boolean = False);
     procedure LTrim(AValue: Integer);
@@ -181,6 +184,16 @@ end;
 destructor TVector.Destroy;
 begin
   FData := nil;
+end;
+
+function TVector.Clone: TVector;
+begin
+  Result := TSelfClass(Self.ClassType).Create(FDefault);
+  Result.FCount := FCount;
+  Result.FCapacity := FCapacity;
+  Result.FFrozen := FFrozen;
+  SetLength(Result.FData, FCapacity);
+  Move(FData[0], Result.FData[0], FCount * SizeOf(T));
 end;
 
 procedure TVector.Append(AValue: T);
