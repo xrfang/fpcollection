@@ -27,7 +27,6 @@ type
     FCurrent: PNode;    //for enumeration
     FComparator: TComparator;
     function GetCount: Integer;
-    function GetCurrent: PNode;
     procedure SetCount(Node: PNode);
     function LeftRotate(Node: PNode): PNode;
     function RightRotate(Node: PNode): PNode;
@@ -40,7 +39,7 @@ type
   public
     property Comparator: TComparator read FComparator write FComparator;
     property Count: Integer read GetCount;
-    property Current: PNode read GetCurrent;
+    property Current: PNode read FCurrent;
     function GetEnumerator: TTreap;
     function Range(ACount: Integer; AStart: Integer = 0): TTreap;
     function Reversed: TTreap;
@@ -155,14 +154,6 @@ begin
   Result := RootNode^.Count;
 end;
 
-function TTreap.GetCurrent: PNode;
-begin
-  if ProxyFor <> nil then
-    Result := ProxyFor.FCurrent
-  else
-    Result := FCurrent;
-end;
-
 procedure TTreap.SetCount(Node: PNode);
 begin
   if Node = NullNode then Exit;
@@ -196,8 +187,10 @@ end;
 
 destructor TTreap.Destroy;
 begin
-  Clear;
-  Dispose(NullNode);
+  if ProxyFor = nil then begin
+    Clear;
+    Dispose(NullNode);
+  end;
   Enums.Free;
 end;
 
@@ -320,17 +313,21 @@ end;
 
 function TTreap.GetEnumerator: TTreap;
 begin
-  while Enums.Count > 0 do Enums.Pop;
-  FCurrent := nil;
-  Enums.Push(RootNode);
   Result := TTreap.Create;
-  Result.ProxyFor := Self;
+  with Result do begin
+    ProxyFor := Self;
+    Enums.Push(Self.RootNode);
+    StartNode := Self.StartNode;
+    NodeCount := Self.NodeCount;
+    Direction := Self.Direction;
+    NullNode := Self.NullNode;
+  end;
 end;
 
 function TTreap.Range(ACount: Integer; AStart: Integer): TTreap;
 begin
   if AStart <> 0 then
-    StartNode := Fetch(AStart)
+    StartNode := Fetch(AStart) {$warning deal with nil StartNode!}
   else if Direction = 0 then
     StartNode := Fetch(1)
   else
@@ -350,7 +347,7 @@ var
   Node: PNode;
   d: Integer;
 begin
-  if ProxyFor <> nil then Exit(ProxyFor.MoveNext);
+  if ProxyFor = nil then Exit(False);
   while Enums.Count > 0 do begin
     Node := Enums.Pop;
     if Node = NullNode then Break;
@@ -380,9 +377,6 @@ begin
       end;
     end;
   end;
-  StartNode := nil;
-  NodeCount := 0;
-  Direction := 0;
   Result := False;
 end;
 end.
