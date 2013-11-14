@@ -20,7 +20,8 @@ type
     NullNode, RootNode: PNode;
     Altered: Boolean;   //for Insert & Delete
     ProxyFor: TTreap;   //for enumeration
-    Direction: Byte;    //for enumeration
+    Direction: Integer; //for enumeration
+    StartIdx: Integer;  //for enumeration
     StartNode: PNode;   //for enumeration
     NodeCount: Integer; //for enumeration
     Enums: TStack;      //for enumeration
@@ -179,10 +180,10 @@ begin
   NullNode^.Priority := MAX_PRIORITY;
   RootNode := NullNode;
   FComparator := @DefaultComparator;
-  Enums := TStack.Create;
-  Direction := 0;
-  StartNode := nil;
+  Enums := nil;
+  Direction := 1;
   NodeCount := 0;
+  StartIdx := 0;
 end;
 
 destructor TTreap.Destroy;
@@ -191,7 +192,7 @@ begin
     Clear;
     Dispose(NullNode);
   end;
-  Enums.Free;
+  if Enums <> nil then Enums.Free;
 end;
 
 function TTreap.Insert(Key: TKey; Value: TValue): Boolean;
@@ -241,7 +242,7 @@ var
   r: Cardinal;
 begin
   if Rank < 0 then Rank := Count + 1 + Rank;
-  if (Rank = 0) or (Rank > Count) then Exit(nil);
+  if (Rank <= 0) or (Rank > Count) then Exit(nil);
   Result := RootNode;
   r := Result^.Count - Result^.Right^.Count;
   while Result <> NullNode do begin
@@ -314,31 +315,31 @@ end;
 function TTreap.GetEnumerator: TTreap;
 begin
   Result := TTreap.Create;
-  with Result do begin
-    ProxyFor := Self;
-    Enums.Push(Self.RootNode);
-    StartNode := Self.StartNode;
-    NodeCount := Self.NodeCount;
-    Direction := Self.Direction;
-    NullNode := Self.NullNode;
-  end;
+  Result.ProxyFor := Self;
+  Result.Direction := Direction;
+  Result.Enums := TStack.Create;
+  Result.Enums.Push(RootNode);
+  Result.NodeCount := NodeCount;
+  Result.NullNode := NullNode;
+  if StartIdx <> 0 then begin
+    Result.StartNode := Fetch(StartIdx);
+    if Result.StartNode = nil then Result.Direction := 0;
+  end else Result.StartNode := Fetch(Direction);
+  Direction := 1;
+  NodeCount := 0;
+  StartIdx := 0;
 end;
 
 function TTreap.Range(ACount: Integer; AStart: Integer): TTreap;
 begin
-  if AStart <> 0 then
-    StartNode := Fetch(AStart) {$warning deal with nil StartNode!}
-  else if Direction = 0 then
-    StartNode := Fetch(1)
-  else
-    StartNode := Fetch(-1);
+  StartIdx := AStart;
   NodeCount := ACount + 1;
   Result := Self;
 end;
 
 function TTreap.Reversed: TTreap;
 begin
-  Direction := 1;
+  Direction := -1;
   Result := Self;
 end;
 
@@ -347,7 +348,7 @@ var
   Node: PNode;
   d: Integer;
 begin
-  if ProxyFor = nil then Exit(False);
+  if (ProxyFor = nil) or (Direction = 0) then Exit(False);
   while Enums.Count > 0 do begin
     Node := Enums.Pop;
     if Node = NullNode then Break;
@@ -360,7 +361,7 @@ begin
     end else begin
       d := 0;
       if StartNode <> nil then d := FComparator(Node^.Key, StartNode);
-      if Direction = 0 then begin
+      if Direction > 0 then begin
         if Node^.Right <> NullNode then Enums.Push(Node^.Right);
         if d >= 0 then begin
           Enums.Push(Node);
