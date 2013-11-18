@@ -10,8 +10,12 @@ type
   private
     FItems: TFPList;
     FParent: TTree;
+    function MQRLEncode(Value: QWord; Output: TStream): Integer;
+    function MQRLDecode(Input: TStream; out Value: QWord): Integer;
   protected
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
+    function DoPersist(node: TTree; out Ptr: Pointer): Integer;
+    function DoRestore(Ptr: Pointer): Boolean;
   public
     Data: T;
     property Parent: TTree read FParent;
@@ -29,6 +33,7 @@ type
     function LastDescendant: TTree;
     function LastSibling: TTree;
     function Level: Cardinal;
+    procedure Load(s: TStream);
     function Next: TTree;
     function NextSibling: TTree;
     function Previous: TTree;
@@ -36,6 +41,7 @@ type
     function Rank: Cardinal;
     function Remove(ANewParent: TTree = nil; APos: Integer = -1): TTree;
     function Root: TTree;
+    procedure Save(s: TStream);
   end;
 
 implementation
@@ -44,6 +50,25 @@ function TTree.Root: TTree;
 begin
   Result := Self;
   while Result.Parent <> nil do Result := Result.Parent;
+end;
+
+procedure TTree.Save(s: TStream);
+var
+  node: TTree;
+  c: Integer;
+  p: Pointer;
+begin
+  node := Self;
+  repeat
+    MQRLEncode(node.Level - Level, s);
+    c := DoPersist(node, p);
+    {$warning TODO: save data size before data}
+    if c > 0 then begin
+      s.WriteBuffer(p^, c);
+      FreeMem(p, c);
+    end;
+    node := node.Next;
+  until node.Level >= Level;
 end;
 
 function TTree.Level: Cardinal;
@@ -55,6 +80,18 @@ begin
   while n <> nil do begin
     Inc(Result);
     n := n.Parent;
+  end;
+end;
+
+procedure TTree.Load(s: TStream);
+var
+  lv: QWord;
+  node: TTree;
+begin
+  node := Self;
+  while MQRLDecode(s, lv) > 0 do begin
+      {$warning TODO: read data size, then data into ptr}
+    DoRestore();
   end;
 end;
 
@@ -187,9 +224,58 @@ begin
   while LastChild <> nil do LastChild.Free;
 end;
 
+function TTree.MQRLEncode(Value: QWord; Output: TStream): Integer;
+var
+  d: byte;
+begin
+  Result := 0;
+  repeat
+    d := Value mod 128;
+    Value := Value div 128;
+    if Value > 0 then d := d or $80;
+    Output.Write(d, 1);
+    Inc(Result);
+  until Value = 0;
+end;
+
+function TTree.MQRLDecode(Input: TStream; out Value: QWord): Integer;
+var
+  d: Byte;
+  multiplier: QWord;
+  Complete: Boolean;
+begin
+  Result := 0;
+  Value := 0;
+  multiplier := 1;
+  Complete := False;
+  while Input.Read(d, 1) > 0 do begin
+    Inc(Result);
+    Value := Value + (d and $7F) * multiplier;
+    multiplier := multiplier * 128;
+    if d and $80 = 0 then begin
+      Complete := True;
+      Break;
+    end;
+  end;
+  if not Complete then Result := -Result;
+end;
+
 procedure TTree.DoClone(Source: TSelfType; var Target: TSelfType);
 begin
   (* empty *)
+end;
+
+function TTree.DoPersist(node: TTree; out Ptr: Pointer): Integer;
+begin
+  Result := SizeOf(T);
+  Ptr := GetMem(Result);
+  Move(node.Data, Ptr^, Result);
+end;
+
+function TTree.DoRestore(Ptr: Pointer): Boolean;
+begin
+  Data := T(Ptr^);
+  Result := True;
 end;
 
 constructor TTree.Create(AData: T; AParent: TTree; APos: Integer);
