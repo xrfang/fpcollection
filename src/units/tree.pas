@@ -18,6 +18,7 @@ type
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
     function DoPersist(node: TTree; out Ptr: Pointer): Integer; virtual;
     procedure DoRestore(Ptr: Pointer); virtual;
+    procedure OnRestore; virtual;
   public
     Data: T;
     property Parent: TTree read FParent;
@@ -106,6 +107,7 @@ begin
   Clear;
   if not ReadNodeData(s, lv, buf, c) then Exit(0);
   DoRestore(buf);
+  OnRestore;
   FreeMem(buf, c);
   Result := 1;
   node := Self;
@@ -115,7 +117,8 @@ begin
       node := TTree.Create(Data, node.Parent)
     else
       node := TTree.Create(Data, node);
-    node.DoRestore(buf);
+    TSelfType(node).DoRestore(buf);
+    TSelfType(node).OnRestore;
     FreeMem(buf, c);
     Inc(Result);
   end;
@@ -301,6 +304,11 @@ end;
 procedure TTree.DoRestore(Ptr: Pointer);
 begin
   Data := T(Ptr^);
+end;
+
+procedure TTree.OnRestore;
+begin
+  (* empty *)
 end;
 
 constructor TTree.Create(AData: T; AParent: TTree; APos: Integer);

@@ -2,18 +2,27 @@ program demo3;
 {$mode objfpc}{$H+}
 uses types, Classes, sysutils, tree;
 type
-  TIntTree = specialize TTree<Integer>;
+  TIntTree = class(specialize TTree<Integer>)
+  protected
+    procedure OnRestore; override;
+  end;
 procedure Dump(t: TIntTree);
 begin
   while t <> nil do begin
     WriteLn(Format('%s%d', [StringOfChar(' ', t.Level * 2), t.Data]));
-    t := t.Next;
+    t := TIntTree(t.Next);
   end;
 end;
 
 var
   fs: TFileStream;
   it, it2: TIntTree;
+
+procedure TIntTree.OnRestore;
+begin
+  Data := 10 * Data;
+end;
+
 begin
   it := TIntTree.Create(0, nil);
   TIntTree.Create(11, TIntTree.Create(1, it));
