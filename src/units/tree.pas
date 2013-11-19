@@ -114,11 +114,11 @@ begin
   while ReadNodeData(s, lv, buf, c) do begin
     while (node <> nil) and (lv < node.Level) do node := node.Parent;
     if (lv = node.Level) and (node <> Self) then
-      node := TTree.Create(Data, node.Parent)
+      node := TSelfClass(Self.ClassType).Create(Data, node.Parent)
     else
-      node := TTree.Create(Data, node);
-    TSelfType(node).DoRestore(buf);
-    TSelfType(node).OnRestore;
+      node := TSelfClass(Self.ClassType).Create(Data, node);
+    node.DoRestore(buf);
+    node.OnRestore;
     FreeMem(buf, c);
     Inc(Result);
   end;
