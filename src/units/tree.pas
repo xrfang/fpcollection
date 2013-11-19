@@ -17,7 +17,7 @@ type
     function RLDecode(Input: TStream; out Value: QWord): Integer;
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
     function DoPersist(out Ptr: Pointer): Integer; virtual;
-    procedure DoRestore(Ptr: Pointer); virtual;
+    procedure DoRestore(Ptr: Pointer; Size: Cardinal); virtual;
     procedure OnRestore; virtual;
   public
     Data: T;
@@ -106,7 +106,7 @@ var
 begin
   Clear;
   if not ReadNodeData(s, lv, buf, c) then Exit(0);
-  DoRestore(buf);
+  DoRestore(buf, c);
   OnRestore;
   FreeMem(buf, c);
   Result := 1;
@@ -117,7 +117,7 @@ begin
       node := TSelfClass(Self.ClassType).Create(Data, node.Parent)
     else
       node := TSelfClass(Self.ClassType).Create(Data, node);
-    node.DoRestore(buf);
+    node.DoRestore(buf, c);
     node.OnRestore;
     FreeMem(buf, c);
     Inc(Result);
@@ -301,7 +301,7 @@ begin
   Move(Data, Ptr^, Result);
 end;
 
-procedure TTree.DoRestore(Ptr: Pointer);
+procedure TTree.DoRestore(Ptr: Pointer; Size: Cardinal);
 begin
   Data := T(Ptr^);
 end;
