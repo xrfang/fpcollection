@@ -16,8 +16,8 @@ type
       out cnt: QWord): Boolean;
   protected
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
-    function DoPersist(node: TTree; out Ptr: Pointer): Integer;
-    procedure DoRestore(Ptr: Pointer);
+    function DoPersist(node: TTree; out Ptr: Pointer): Integer; virtual;
+    procedure DoRestore(Ptr: Pointer); virtual;
   public
     Data: T;
     property Parent: TTree read FParent;
