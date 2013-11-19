@@ -1,7 +1,7 @@
 unit tree;
 {$mode objfpc}{$H+}
 interface
-uses Classes;
+uses sysutils, Classes;
 type
   generic TTree<T> = class
   protected type
@@ -12,10 +12,12 @@ type
     FParent: TTree;
     function MQRLEncode(Value: QWord; Output: TStream): Integer;
     function MQRLDecode(Input: TStream; out Value: QWord): Integer;
+    function ReadNodeData(s: TStream; out lev: QWord; out ptr: Pointer;
+      out cnt: QWord): Boolean;
   protected
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
     function DoPersist(node: TTree; out Ptr: Pointer): Integer;
-    function DoRestore(Ptr: Pointer): Boolean;
+    procedure DoRestore(Ptr: Pointer);
   public
     Data: T;
     property Parent: TTree read FParent;
@@ -33,7 +35,7 @@ type
     function LastDescendant: TTree;
     function LastSibling: TTree;
     function Level: Cardinal;
-    procedure Load(s: TStream);
+    function Load(s: TStream): Integer;
     function Next: TTree;
     function NextSibling: TTree;
     function Previous: TTree;
@@ -41,7 +43,7 @@ type
     function Rank: Cardinal;
     function Remove(ANewParent: TTree = nil; APos: Integer = -1): TTree;
     function Root: TTree;
-    procedure Save(s: TStream);
+    function Save(s: TStream): Integer;
   end;
 
 implementation
@@ -52,23 +54,25 @@ begin
   while Result.Parent <> nil do Result := Result.Parent;
 end;
 
-procedure TTree.Save(s: TStream);
+function TTree.Save(s: TStream): Integer;
 var
   node: TTree;
   c: Integer;
   p: Pointer;
 begin
+  Result := 0;
   node := Self;
   repeat
-    MQRLEncode(node.Level - Level, s);
+    Inc(Result);
     c := DoPersist(node, p);
-    {$warning TODO: save data size before data}
     if c > 0 then begin
+      MQRLEncode(node.Level - Level, s);
+      MQRLEncode(c, s);
       s.WriteBuffer(p^, c);
       FreeMem(p, c);
     end;
     node := node.Next;
-  until node.Level >= Level;
+  until (node = nil) or (node.Level <= Level);
 end;
 
 function TTree.Level: Cardinal;
@@ -83,15 +87,37 @@ begin
   end;
 end;
 
-procedure TTree.Load(s: TStream);
-var
-  lv: QWord;
-  node: TTree;
+function TTree.ReadNodeData(s: TStream; out lev: QWord; out ptr: Pointer; out
+  cnt: QWord): Boolean;
 begin
+  if (MQRLDecode(s, lev) <= 0) or (MQRLDecode(s, cnt) <= 0) then Exit(False);
+  ptr := GetMem(cnt);
+  s.ReadBuffer(ptr^, cnt);
+  lev := lev + Level;
+  Result := True;
+end;
+
+function TTree.Load(s: TStream): Integer;
+var
+  lv, c: QWord;
+  node: TTree;
+  buf: Pointer;
+begin
+  Clear;
+  if not ReadNodeData(s, lv, buf, c) then Exit(0);
+  DoRestore(buf);
+  FreeMem(buf, c);
+  Result := 1;
   node := Self;
-  while MQRLDecode(s, lv) > 0 do begin
-      {$warning TODO: read data size, then data into ptr}
-    DoRestore();
+  while ReadNodeData(s, lv, buf, c) do begin
+    while (node <> nil) and (lv < node.Level) do node := node.Parent;
+    if (lv = node.Level) and (node <> Self) then
+      node := TTree.Create(Data, node.Parent)
+    else
+      node := TTree.Create(Data, node);
+    node.DoRestore(buf);
+    FreeMem(buf, c);
+    Inc(Result);
   end;
 end;
 
@@ -272,10 +298,9 @@ begin
   Move(node.Data, Ptr^, Result);
 end;
 
-function TTree.DoRestore(Ptr: Pointer): Boolean;
+procedure TTree.DoRestore(Ptr: Pointer);
 begin
   Data := T(Ptr^);
-  Result := True;
 end;
 
 constructor TTree.Create(AData: T; AParent: TTree; APos: Integer);
