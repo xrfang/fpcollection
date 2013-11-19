@@ -16,7 +16,7 @@ type
     function RLEncode(Value: QWord; Output: TStream): Integer;
     function RLDecode(Input: TStream; out Value: QWord): Integer;
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
-    function DoPersist(node: TTree; out Ptr: Pointer): Integer; virtual;
+    function DoPersist(out Ptr: Pointer): Integer; virtual;
     procedure DoRestore(Ptr: Pointer); virtual;
     procedure OnRestore; virtual;
   public
@@ -65,7 +65,7 @@ begin
   node := Self;
   repeat
     Inc(Result);
-    c := DoPersist(node, p);
+    c := node.DoPersist(p);
     if c > 0 then begin
       RLEncode(node.Level - Level, s);
       RLEncode(c, s);
@@ -294,11 +294,11 @@ begin
   (* empty *)
 end;
 
-function TTree.DoPersist(node: TTree; out Ptr: Pointer): Integer;
+function TTree.DoPersist(out Ptr: Pointer): Integer;
 begin
   Result := SizeOf(T);
   Ptr := GetMem(Result);
-  Move(node.Data, Ptr^, Result);
+  Move(Data, Ptr^, Result);
 end;
 
 procedure TTree.DoRestore(Ptr: Pointer);
