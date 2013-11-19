@@ -10,11 +10,11 @@ type
   private
     FItems: TFPList;
     FParent: TTree;
-    function MQRLEncode(Value: QWord; Output: TStream): Integer;
-    function MQRLDecode(Input: TStream; out Value: QWord): Integer;
     function ReadNodeData(s: TStream; out lev: QWord; out ptr: Pointer;
       out cnt: QWord): Boolean;
   protected
+    function RLEncode(Value: QWord; Output: TStream): Integer;
+    function RLDecode(Input: TStream; out Value: QWord): Integer;
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
     function DoPersist(node: TTree; out Ptr: Pointer): Integer; virtual;
     procedure DoRestore(Ptr: Pointer); virtual;
@@ -67,8 +67,8 @@ begin
     Inc(Result);
     c := DoPersist(node, p);
     if c > 0 then begin
-      MQRLEncode(node.Level - Level, s);
-      MQRLEncode(c, s);
+      RLEncode(node.Level - Level, s);
+      RLEncode(c, s);
       s.WriteBuffer(p^, c);
       FreeMem(p, c);
     end;
@@ -91,7 +91,7 @@ end;
 function TTree.ReadNodeData(s: TStream; out lev: QWord; out ptr: Pointer; out
   cnt: QWord): Boolean;
 begin
-  if (MQRLDecode(s, lev) <= 0) or (MQRLDecode(s, cnt) <= 0) then Exit(False);
+  if (RLDecode(s, lev) <= 0) or (RLDecode(s, cnt) <= 0) then Exit(False);
   ptr := GetMem(cnt);
   s.ReadBuffer(ptr^, cnt);
   lev := lev + Level;
@@ -253,7 +253,7 @@ begin
   while LastChild <> nil do LastChild.Free;
 end;
 
-function TTree.MQRLEncode(Value: QWord; Output: TStream): Integer;
+function TTree.RLEncode(Value: QWord; Output: TStream): Integer;
 var
   d: byte;
 begin
@@ -267,7 +267,7 @@ begin
   until Value = 0;
 end;
 
-function TTree.MQRLDecode(Input: TStream; out Value: QWord): Integer;
+function TTree.RLDecode(Input: TStream; out Value: QWord): Integer;
 var
   d: Byte;
   multiplier: QWord;
