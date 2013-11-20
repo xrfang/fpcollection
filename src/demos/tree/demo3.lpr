@@ -4,7 +4,8 @@ uses types, Classes, sysutils, tree;
 type
   TIntTree = class(specialize TTree<Integer>)
   protected
-    procedure OnRestore; override;
+    procedure DoRestore(var Ptr: Pointer; var Size: QWord); override;
+    procedure OnRestore(Ptr: Pointer; Size: QWord); override;
   end;
 procedure Dump(t: TIntTree);
 begin
@@ -18,9 +19,18 @@ var
   fs: TFileStream;
   it, it2: TIntTree;
 
-procedure TIntTree.OnRestore;
+procedure TIntTree.DoRestore(var Ptr: Pointer; var Size: QWord);
 begin
-  Data := 10 * Data;
+  inherited DoRestore(Ptr, Size);
+  FreeMem(Ptr, Size);
+  Size := SizeOf(Boolean);
+  Ptr := GetMem(Size);
+  Boolean(Ptr^) := (Data mod 2) <> 0;
+end;
+
+procedure TIntTree.OnRestore(Ptr: Pointer; Size: QWord);
+begin
+  if Boolean(Ptr^) then Data := 10 * Data else Data := 5 * Data;
 end;
 
 begin
