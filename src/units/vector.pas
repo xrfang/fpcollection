@@ -35,6 +35,8 @@ type
     destructor Destroy; override;
     function Clone: TVector;
     procedure Append(AValue: T);
+    procedure Push(AValue: T);
+    function Pop: T;
     procedure Clear(Init: Boolean = False);
     procedure LTrim(AValue: Integer);
     procedure RTrim(AValue: Integer);
@@ -44,7 +46,7 @@ type
 implementation
 function TVector.GetItem(Index: Integer): T;
 begin
-  if Index < Count then Result := FData[Index] else Result := FDefault;
+  if Index < FCount then Result := FData[Index] else Result := FDefault;
 end;
 
 procedure TVector.RTrim(AValue: Integer);
@@ -177,7 +179,7 @@ begin
   FDefault := ADefault;
   FFrozen := False;
   FCount := 0;
-  FCapacity := 64; //allocate 64 byte initially.
+  FCapacity := 16; //initial allocation
   SetLength(FData, FCapacity);
 end;
 
@@ -199,6 +201,18 @@ end;
 procedure TVector.Append(AValue: T);
 begin
   Item[FCount] := AValue;
+end;
+
+procedure TVector.Push(AValue: T);
+begin
+  Item[FCount] := AValue;
+end;
+
+function TVector.Pop: T;
+begin
+  Dec(FCount);
+  Result := FData[FCount];
+  if FFrozen then AdjustCapacity(0) else AdjustCapacity(FCount);
 end;
 
 procedure TVector.Clear(Init: Boolean);
