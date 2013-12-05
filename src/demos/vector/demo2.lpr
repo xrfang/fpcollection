@@ -22,7 +22,7 @@ begin
   WriteLn(stderr, 'len=', len);
   for c := 0 to 20 do begin
     iv.Clear;
-    for i := 0 to len - 1 do iv.Append(round(1000 * Random));
+    for i := 0 to len - 1 do iv.Push(round(1000 * Random));
     iv.Sort;
     Assert(iv.Count = len);
     v := -100000;
