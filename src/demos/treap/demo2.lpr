@@ -9,11 +9,22 @@ type
   end;
   { TRoller }
   TRoller = class(specialize TTreap<PPerson, Byte>)
+  private
+    FIsLink: Boolean;
+  protected
+    procedure Disposer(Node: PNode); override;
   public
+    property IsLink: Boolean write FIsLink;
     function OrderByName(Key: TKey; Node: PNode): Integer;
     function OrderByAge(Key: TKey; Node: PNode): Integer;
     procedure Add(name: string; age: Integer);
   end;
+
+procedure TRoller.Disposer(Node: PNode);
+begin
+  if not FIsLink then Dispose(Node^.Key);
+end;
+
 { TRoller }
 function TRoller.OrderByName(Key: TKey; Node: PNode): Integer;
 begin
@@ -57,9 +68,12 @@ var
   n: TRoller.PNode;
   r1, r2: TRoller;
 begin
+  DeleteFile('heap.trc');
+  SetHeapTraceOutput('heap.trc');
   Randomize;
   r1 := TRoller.Create;
   r2 := TRoller.Create;
+  r2.IsLink := True;
   with r1 do begin
     Comparator := @OrderByName;
     Add('Alice', Random(100));

@@ -316,10 +316,12 @@ function TTreap.GetEnumerator: TTreap;
 begin
   Result := TTreap.Create;
   Result.ProxyFor := Self;
+  Result.Comparator := FComparator;
   Result.Direction := Direction;
   Result.Enums := TStack.Create;
   Result.Enums.Push(RootNode);
   Result.NodeCount := NodeCount;
+  Dispose(Result.NullNode);
   Result.NullNode := NullNode;
   if StartIdx <> 0 then begin
     Result.StartNode := Fetch(StartIdx);
