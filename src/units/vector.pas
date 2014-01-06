@@ -166,9 +166,11 @@ end;
 
 function TVector.Pop: T;
 begin
-  Dec(FCount);
-  Result := FData[FCount];
-  AdjustCapacity;
+  if FCount > 0 then begin
+    Dec(FCount);
+    Result := FData[FCount];
+    AdjustCapacity;
+  end else Result := FDefault;
 end;
 
 procedure TVector.Clear(Disp: TDisposer);
