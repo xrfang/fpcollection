@@ -27,7 +27,7 @@ begin
   TStringTree.Create('n3', tr);
   WriteLn('Now we have n1 and n3 added as children of ROOT.');
   PrintTree(tr);
-  WriteLn('Child at Rank 2 is: ', tr.ChildAt(2).Data);
+  WriteLn('Child at Rank 2 is: ', tr[2].Data);
   WriteLn('Clone the tree to a new one.');
   tr2 := tr.Clone;
   PrintTree(tr2);

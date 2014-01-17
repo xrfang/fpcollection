@@ -10,6 +10,7 @@ type
   private
     FItems: TFPList;
     FParent: TTree;
+    function GetChild(Rank: Cardinal): TTree;
     function ReadNodeData(s: TStream; out lev: QWord; out ptr: Pointer;
       out cnt: QWord): Boolean;
   protected
@@ -20,10 +21,10 @@ type
     procedure DoRestore(Ptr: Pointer; Size: QWord); virtual;
   public
     Data: T;
+    property Child[Rank: Cardinal]: TTree read GetChild; default;
     property Parent: TTree read FParent;
     constructor Create(AData: T; AParent: TTree; APos: Integer = -1); virtual;
     destructor Destroy; override;
-    function ChildAt(Rank: Cardinal): TTree;
     function Children: Cardinal;
     procedure Clear;
     function Clone: TTree;
@@ -95,6 +96,15 @@ begin
   s.ReadBuffer(ptr^, cnt);
   lev := lev + Level;
   Result := True;
+end;
+
+function TTree.GetChild(Rank: Cardinal): TTree;
+var
+  idx: Integer;
+begin
+  idx := Rank - 1;
+  if (idx < 0) or (idx >= FItems.Count) then Exit(nil);
+  Exit(TSelfType(FItems[idx]));
 end;
 
 function TTree.Load(s: TStream): Integer;
@@ -318,15 +328,6 @@ begin
   Remove;
   with FItems do while Count > 0 do TTree(FItems[Count - 1]).Free;
   FItems.Free;
-end;
-
-function TTree.ChildAt(Rank: Cardinal): TTree;
-var
-  idx: Integer;
-begin
-  idx := Rank - 1;
-  if (idx < 0) or (idx >= FItems.Count) then Exit(nil);
-  Exit(TSelfType(FItems[idx]));
 end;
 
 function TTree.Remove(ANewParent: TTree; APos: Integer): TTree;
