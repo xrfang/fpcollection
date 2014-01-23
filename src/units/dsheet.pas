@@ -45,6 +45,7 @@ type
     procedure Save(fn: string; fmt: string = '%0.4f');
     function Export(fmt: string = '%0.4f'): TStringList;
     procedure Import(src: TStringList; WithHeaders: HeaderOpts);
+    procedure Visualize(ACanvas: TCanvas
   end;
 
 implementation

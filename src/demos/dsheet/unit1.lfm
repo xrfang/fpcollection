@@ -1,0 +1,52 @@
+object Form1: TForm1
+  Left = 604
+  Height = 300
+  Top = 252
+  Width = 397
+  ActiveControl = pc
+  Caption = 'Data Visualizer'
+  ClientHeight = 300
+  ClientWidth = 397
+  Position = poScreenCenter
+  LCLVersion = '1.0.14.0'
+  object pc: TPageControl
+    Left = 0
+    Height = 300
+    Top = 0
+    Width = 397
+    ActivePage = TabSheet1
+    Align = alClient
+    TabIndex = 0
+    TabOrder = 0
+    TabPosition = tpBottom
+    object TabSheet1: TTabSheet
+      Caption = 'Chart'
+      ClientHeight = 268
+      ClientWidth = 393
+      object PaintBox1: TPaintBox
+        Left = 0
+        Height = 268
+        Top = 0
+        Width = 393
+        Align = alClient
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'Data'
+      ClientHeight = 268
+      ClientWidth = 393
+      object lv: TListView
+        Left = 0
+        Height = 268
+        Top = 0
+        Width = 393
+        Align = alClient
+        Columns = <>
+        RowSelect = True
+        ScrollBars = ssAutoBoth
+        TabOrder = 0
+        ViewStyle = vsReport
+      end
+    end
+  end
+end
