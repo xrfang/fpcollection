@@ -7,13 +7,15 @@ object Form1: TForm1
   Caption = 'Data Visualizer'
   ClientHeight = 300
   ClientWidth = 397
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   Position = poScreenCenter
   LCLVersion = '1.0.14.0'
   object pc: TPageControl
     Left = 0
     Height = 300
     Top = 0
-    Width = 397
+    Width = 309
     ActivePage = TabSheet1
     Align = alClient
     TabIndex = 0
@@ -22,31 +24,83 @@ object Form1: TForm1
     object TabSheet1: TTabSheet
       Caption = 'Chart'
       ClientHeight = 268
-      ClientWidth = 393
-      object PaintBox1: TPaintBox
+      ClientWidth = 305
+      object pb: TPaintBox
         Left = 0
         Height = 268
         Top = 0
-        Width = 393
+        Width = 305
         Align = alClient
+        OnPaint = pbPaint
       end
     end
     object TabSheet2: TTabSheet
       Caption = 'Data'
       ClientHeight = 268
-      ClientWidth = 393
+      ClientWidth = 305
       object lv: TListView
         Left = 0
         Height = 268
         Top = 0
-        Width = 393
+        Width = 305
         Align = alClient
+        AutoSort = False
         Columns = <>
+        GridLines = True
+        OwnerData = True
+        ReadOnly = True
         RowSelect = True
         ScrollBars = ssAutoBoth
         TabOrder = 0
         ViewStyle = vsReport
+        OnData = lvData
       end
     end
+    object TabSheet3: TTabSheet
+      Caption = 'Message'
+      ClientHeight = 268
+      ClientWidth = 305
+      object Memo1: TMemo
+        Left = 0
+        Height = 268
+        Top = 0
+        Width = 305
+        Align = alClient
+        TabOrder = 0
+      end
+    end
+  end
+  object Panel1: TPanel
+    Left = 309
+    Height = 300
+    Top = 0
+    Width = 88
+    Align = alRight
+    BevelOuter = bvNone
+    ClientHeight = 300
+    ClientWidth = 88
+    TabOrder = 1
+    object Button1: TButton
+      Left = 7
+      Height = 25
+      Top = 6
+      Width = 75
+      Caption = 'Import'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 7
+      Height = 25
+      Top = 35
+      Width = 75
+      Caption = 'Load'
+      OnClick = Button2Click
+      TabOrder = 1
+    end
+  end
+  object od: TOpenDialog
+    left = 352
+    top = 117
   end
 end

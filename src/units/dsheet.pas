@@ -3,11 +3,13 @@ unit dsheet;
 interface
 
 uses
-  Classes;
+  Classes, Graphics, fpjson;
 type
+  PRect = ^TRect;
   TDataSheet = class
   type
-    HeaderOpts = (hNone, hColOnly, hRowOnly, hBoth);
+    ChartType = (ctBase, ctOHLC, ctLine, ctBars, ctScat);
+    HeaderOpt = (hNone, hColOnly, hRowOnly, hBoth);
     Row = class
     private
       FOwner: TDataSheet;
@@ -30,6 +32,14 @@ type
     function GetRow(Index: Real): Row;
     function GetRowCount: Integer;
     procedure SetHeader(Index: Real; AValue: string);
+    function CSSColor(spec: string): TColor;
+    function CSSColor(spec: LongWord): TColor;
+    function PenStyle(ps: string): TPenStyle;
+    procedure DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+    procedure DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+    procedure DrawLine(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+    procedure DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+    procedure DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
   public
     property Data[Index: Real]: Row read GetRow; default;
     property Cols: Integer read FCols;
@@ -42,14 +52,15 @@ type
     procedure Clear(Complete: Boolean = True);
     procedure Delete(Index: Real);
     procedure Load(fn: string);
-    procedure Save(fn: string; fmt: string = '%0.4f');
+    procedure Save(fn: string; fmt: string = '%e');
     function Export(fmt: string = '%0.4f'): TStringList;
-    procedure Import(src: TStringList; WithHeaders: HeaderOpts);
-    procedure Visualize(ACanvas: TCanvas
+    procedure Import(src: TStringList; WithHeaders: HeaderOpt);
+    procedure Visualize(AType: ChartType; ACanvas: TCanvas; opts: string = ''; ARect: PRect = nil);
+    procedure Visualize(AType: ChartType; ACanvas: TCanvas; opts: TJSONObject; ARect: PRect = nil);
   end;
 
 implementation
-uses sysutils, zstream;
+uses sysutils, zstream, jsonparser;
 
 function TDataSheet.Row.GetData(Index: Real): Double;
 var
@@ -116,6 +127,89 @@ begin
   i := round(Index);
   if i >= c then for j := c to i do FHeaders.Add('');
   FHeaders[i] := AValue;
+end;
+
+function TDataSheet.CSSColor(spec: string): TColor;
+var
+  c: Integer;
+  r, g, b: Byte;
+begin
+  c := Length(spec);
+  if c = 7 then begin
+    spec := Copy(spec, 2, 6);
+    c := 6;
+  end;
+  if c = 6 then try
+    r := StrToInt('$' + Copy(spec, 1, 2));
+    g := StrToInt('$' + Copy(spec, 3, 2));
+    b := StrToInt('$' + Copy(spec, 5, 2));
+    Exit(RGBToColor(r, g, b));
+  except end;
+  raise Exception.CreateFmt('Color value not recognized: %s', [spec]);
+end;
+
+function TDataSheet.CSSColor(spec: LongWord): TColor;
+var
+  r, g, b: Byte;
+begin
+  r := spec and $FF0000;
+  g := spec and $00FF00;
+  b := spec and $0000FF;
+  Result := RGBToColor(r, g, b);
+end;
+
+function TDataSheet.PenStyle(ps: string): TPenStyle;
+begin
+  if ps = '-' then Exit(psSolid);
+  if ps = '--' then Exit(psDash);
+  if ps = '..' then Exit(psDot);
+  if ps = '-.' then Exit(psDashDot);
+  if ps = '-..' then Exit(psDashDotDot);
+  Exit(psClear);
+end;
+
+procedure TDataSheet.DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+var
+  color: TColor;
+  border_color: TColor;
+  border_width: Integer;
+  border_style: TPenStyle;
+  jd: TJSONData;
+begin
+  color := CSSColor(opts.Get('color', '#FFFFFF'));
+  border_color := CSSColor(opts.Get('border_color', '#FFFFFF'));
+  border_style := PenStyle(opts.Get('border_style', '-'));
+  border_width := opts.Get('border_width', 1);
+  with ACanvas do begin
+    Brush.Color := color;
+    FillRect(ARect);
+    if border_style <> psClear then with Pen do begin
+      Color := border_color;
+      Width := border_width;
+      Style := border_style;
+      Rectangle(ARect);
+    end;
+  end;
+end;
+
+procedure TDataSheet.DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+begin
+
+end;
+
+procedure TDataSheet.DrawLine(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+begin
+
+end;
+
+procedure TDataSheet.DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+begin
+
+end;
+
+procedure TDataSheet.DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+begin
+
 end;
 
 constructor TDataSheet.Create(ADefault: Double);
@@ -223,7 +317,7 @@ begin
   end;
 end;
 
-procedure TDataSheet.Import(src: TStringList; WithHeaders: HeaderOpts);
+procedure TDataSheet.Import(src: TStringList; WithHeaders: HeaderOpt);
 var
   i, j: Integer;
   sl: TStringList;
@@ -261,6 +355,37 @@ begin
     end;
   finally
     sl.Free;
+  end;
+end;
+
+procedure TDataSheet.Visualize(AType: ChartType; ACanvas: TCanvas; opts: string;
+  ARect: PRect);
+var
+  jo: TJSONObject;
+begin
+  with TJSONParser.Create(opts) do try
+    jo := Parse as TJSONObject;
+    Visualize(AType, ACanvas, jo, ARect);
+  finally
+    jo.Free;
+    Free;
+  end;
+end;
+
+procedure TDataSheet.Visualize(AType: ChartType; ACanvas: TCanvas;
+  opts: TJSONObject; ARect: PRect);
+var
+  r: TRect;
+begin
+  if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
+  else                r := ARect^;
+  case AType of
+    ctBase: DrawBase(ACanvas, r, opts);
+    ctOHLC: DrawOHLC(ACanvas, r, opts);
+    ctLine: DrawLine(ACanvas, r, opts);
+    ctBars: DrawBars(ACanvas, r, opts);
+    ctScat: DrawScat(ACanvas, r, opts);
+    else raise Exception.CreateFmt('Invalid chart type: %d', [AType]);
   end;
 end;
 
