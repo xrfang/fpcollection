@@ -35,12 +35,13 @@ type
     function CSSColor(spec: string): TColor;
     function CSSColor(spec: LongWord): TColor;
     function PenStyle(ps: string): TPenStyle;
-    procedure DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
-    procedure DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
-    procedure DrawLine(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
-    procedure DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
-    procedure DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+    procedure DrawBase(ARect: TRect; opts: TJSONObject);
+    procedure DrawOHLC(ARect: TRect; opts: TJSONObject);
+    procedure DrawLine(ARect: TRect; opts: TJSONObject);
+    procedure DrawBars(ARect: TRect; opts: TJSONObject);
+    procedure DrawScat(ARect: TRect; opts: TJSONObject);
   public
+    Canvas: TCanvas;
     property Data[Index: Real]: Row read GetRow; default;
     property Cols: Integer read FCols;
     property Headers[Index: Real]: string read GetHeader write SetHeader;
@@ -55,8 +56,8 @@ type
     procedure Save(fn: string; fmt: string = '%e');
     function Export(fmt: string = '%0.4f'): TStringList;
     procedure Import(src: TStringList; WithHeaders: HeaderOpt);
-    procedure Visualize(AType: ChartType; ACanvas: TCanvas; opts: string = ''; ARect: PRect = nil);
-    procedure Visualize(AType: ChartType; ACanvas: TCanvas; opts: TJSONObject; ARect: PRect = nil);
+    procedure Visualize(AType: ChartType; opts: string = ''; ARect: PRect = nil);
+    procedure Visualize(AType: ChartType; opts: TJSONObject; ARect: PRect = nil);
   end;
 
 implementation
@@ -168,7 +169,7 @@ begin
   Exit(psClear);
 end;
 
-procedure TDataSheet.DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+procedure TDataSheet.DrawBase(ARect: TRect; opts: TJSONObject);
 var
   color: TColor;
   border_color: TColor;
@@ -180,7 +181,7 @@ begin
   border_color := CSSColor(opts.Get('border_color', '#FFFFFF'));
   border_style := PenStyle(opts.Get('border_style', '-'));
   border_width := opts.Get('border_width', 1);
-  with ACanvas do begin
+  with Canvas do begin
     Brush.Color := color;
     FillRect(ARect);
     if border_style <> psClear then with Pen do begin
@@ -192,22 +193,22 @@ begin
   end;
 end;
 
-procedure TDataSheet.DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+procedure TDataSheet.DrawOHLC(ARect: TRect; opts: TJSONObject);
 begin
 
 end;
 
-procedure TDataSheet.DrawLine(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+procedure TDataSheet.DrawLine(ARect: TRect; opts: TJSONObject);
 begin
 
 end;
 
-procedure TDataSheet.DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+procedure TDataSheet.DrawBars(ARect: TRect; opts: TJSONObject);
 begin
 
 end;
 
-procedure TDataSheet.DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+procedure TDataSheet.DrawScat(ARect: TRect; opts: TJSONObject);
 begin
 
 end;
@@ -358,33 +359,33 @@ begin
   end;
 end;
 
-procedure TDataSheet.Visualize(AType: ChartType; ACanvas: TCanvas; opts: string;
-  ARect: PRect);
+procedure TDataSheet.Visualize(AType: ChartType; opts: string; ARect: PRect);
 var
   jo: TJSONObject;
 begin
+  if Canvas = nil then Exit;
   with TJSONParser.Create(opts) do try
     jo := Parse as TJSONObject;
-    Visualize(AType, ACanvas, jo, ARect);
+    Visualize(AType, jo, ARect);
   finally
     jo.Free;
     Free;
   end;
 end;
 
-procedure TDataSheet.Visualize(AType: ChartType; ACanvas: TCanvas;
-  opts: TJSONObject; ARect: PRect);
+procedure TDataSheet.Visualize(AType: ChartType; opts: TJSONObject; ARect: PRect);
 var
   r: TRect;
 begin
-  if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
+  if Canvas = nil then Exit;
+  if ARect = nil then r := Rect(0, 0, Canvas.Width - 1, Canvas.Height - 1)
   else                r := ARect^;
   case AType of
-    ctBase: DrawBase(ACanvas, r, opts);
-    ctOHLC: DrawOHLC(ACanvas, r, opts);
-    ctLine: DrawLine(ACanvas, r, opts);
-    ctBars: DrawBars(ACanvas, r, opts);
-    ctScat: DrawScat(ACanvas, r, opts);
+    ctBase: DrawBase(r, opts);
+    ctOHLC: DrawOHLC(r, opts);
+    ctLine: DrawLine(r, opts);
+    ctBars: DrawBars(r, opts);
+    ctScat: DrawScat(r, opts);
     else raise Exception.CreateFmt('Invalid chart type: %d', [AType]);
   end;
 end;
