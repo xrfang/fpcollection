@@ -89,9 +89,11 @@ end;
 
 procedure TForm1.pbPaint(Sender: TObject);
 begin
+  if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
   ds.Visualize(pb.Canvas, ctBase,
     '{"color": "EEEEEE", "border_color": "aaaaaa", "border_style": ".."}');
   ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
+  ds.Visualize(pb.Canvas, ctLine, '{"color": "#0000FF", "style": "..", "shape": "*"}');
 end;
 
 procedure TForm1.ReloadDatasheet;
@@ -105,6 +107,7 @@ begin
     AutoSize := True;
   end;
   lv.Items.Count := ds.Rows;
+  ds.Anchor := -1;
 end;
 
 procedure TForm1.Log(msg: string);
