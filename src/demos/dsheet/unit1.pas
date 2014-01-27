@@ -44,7 +44,6 @@ implementation
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   ds := TDataSheet.Create;
-  ds.Canvas := pb.Canvas;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
@@ -90,8 +89,8 @@ end;
 
 procedure TForm1.pbPaint(Sender: TObject);
 begin
-  ds.Visualize(ctBase,
-    '{"color": "#EEEEEE", "border_color": "FF0000", "border_style": ".."}');
+  ds.Visualize(pb.Canvas, ctBase,
+    '{"color": "EEEEEE", "border_color": "FF0000", "border_style": ".."}');
 end;
 
 procedure TForm1.ReloadDatasheet;
