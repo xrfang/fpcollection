@@ -90,7 +90,8 @@ end;
 procedure TForm1.pbPaint(Sender: TObject);
 begin
   ds.Visualize(pb.Canvas, ctBase,
-    '{"color": "EEEEEE", "border_color": "FF0000", "border_style": ".."}');
+    '{"color": "EEEEEE", "border_color": "aaaaaa", "border_style": ".."}');
+  ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
 end;
 
 procedure TForm1.ReloadDatasheet;

@@ -31,6 +31,7 @@ type
     FMagnifier: Integer;
     FAnchor: Integer;
     FSpan: Integer;
+    FBGColor: TColor;
     function GetHeader(Index: Real): string;
     function GetRow(Index: Real): Row;
     function GetRowCount: Integer;
@@ -74,7 +75,7 @@ type
   end;
 
 implementation
-uses sysutils, zstream, jsonparser;
+uses sysutils, math, zstream, jsonparser;
 
 function TDataSheet.Row.GetData(Index: Real): Double;
 var
@@ -226,18 +227,16 @@ end;
 
 procedure TDataSheet.DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
-  color: TColor;
   border_color: TColor;
   border_width: Integer;
   border_style: TPenStyle;
-  jd: TJSONData;
 begin
-  color := CSSColor(opts.Get('color', '#FFFFFF'));
+  FBGColor := CSSColor(opts.Get('color', '#FFFFFF'));
   border_color := CSSColor(opts.Get('border_color', '#FFFFFF'));
   border_style := PenStyle(opts.Get('border_style', '-'));
   border_width := opts.Get('border_width', 1);
   with ACanvas do begin
-    Brush.Color := color;
+    Brush.Color := FBGColor;
     FillRect(ARect);
     if border_style <> psClear then with Pen do begin
       Color := border_color;
@@ -249,9 +248,55 @@ begin
 end;
 
 procedure TDataSheet.DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+var
+  Color: TColor;
+  oc, hc, lc, cc, i, x: Integer;
+  o, h, l, c: Integer;
+  color_0, color_1, color_2: TColor;
+  ja: TJSONArray;
+  Min, Max: Real;
 begin
-  //TODO: get params
+  if Cols < 4 then Exit;
   if not Sync(ARect) then Exit;
+  color_0 := CSSColor(opts.Get('color_0', '#008000'));
+  color_1 := CSSColor(opts.Get('color_1', '#FF0000'));
+  color_2 := CSSColor(opts.Get('color_2', '#000000'));
+  oc := 1; hc := 2; lc := 3; cc := 4;
+  ja := opts.Find('data', jtArray) as TJSONArray;
+  if (ja <> nil) and (ja.Count = 4) then begin
+    oc := ja[0].AsInteger; hc := ja[1].AsInteger;
+    lc := ja[2].AsInteger; cc := ja[3].AsInteger;
+  end;
+  Min := 1e300; Max := -1e300;
+  Range(hc, Min, Max); Range(lc, Min, Max);
+  with ACanvas do begin
+    Pen.Style := psSolid;
+    Pen.Width := 1;
+    for i := FAnchor - FSpan to FAnchor do begin
+      x := HMap(ARect, i - FAnchor + FSpan);
+      o := VMap(ARect, Min, Max, Data[i][oc]);
+      h := VMap(ARect, Min, Max, Data[i][hc]);
+      l := VMap(ARect, Min, Max, Data[i][lc]);
+      c := VMap(ARect, Min, Max, Data[i][cc]);
+      case Sign(Data[i][cc] - Data[i][oc]) of
+        1: Color := color_1;
+        -1: Color := color_0;
+        else Color := color_2;
+      end;
+      Pen.Color := Color;
+      MoveTo(x, h);
+      LineTo(x, l);
+      if FMagnifier >= 5 then begin
+        Brush.Color := ifthen(Color = color_1, FBGColor, Color);
+        if o = c then begin
+          MoveTo(x - FMagnifier div 2, o);
+          LineTo(x + FMagnifier div 2, c);
+        end else begin
+          Rectangle(x - FMagnifier div 2, o, x + FMagnifier div 2, c);
+        end;
+      end;
+    end;
+  end;
 end;
 
 procedure TDataSheet.DrawLine(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
@@ -280,6 +325,7 @@ begin
   FMagnifier := 5;
   FAnchor := -1;
   FSpan := 0;
+  FBGColor := clWhite;
 end;
 
 function TDataSheet.Insert(Index: Real): Row;
@@ -425,6 +471,7 @@ var
 begin
   with TJSONParser.Create(opts) do try
     jo := Parse as TJSONObject;
+    if jo = nil then jo := TJSONObject.Create;
     Visualize(ACanvas, AType, jo, ARect);
   finally
     jo.Free;
