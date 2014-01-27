@@ -82,9 +82,9 @@ function TDataSheet.Row.GetData(Index: Real): Double;
 var
   i : Integer;
 begin
-  i := round(Index) - 1; //Index from 1, but internally starting from 0
   Result := FDefault;
-  if i < Length(FData) then Result := FData[i];
+  i := round(Index) - 1; //Index from 1, but internally starting from 0
+  if i in [0..Length(FData)-1] then Result := FData[i];
 end;
 
 procedure TDataSheet.Row.SetData(Index: Real; AValue: Double);
@@ -92,6 +92,7 @@ var
   i, j, c: Integer;
 begin
   i := round(Index) - 1; //Index from 1, but internally starting from 0
+  if i < 0 then Exit;
   c := Length(FData);
   if i >= c then begin
     if FOwner.FCols <= i then FOwner.FCols := i + 1;
