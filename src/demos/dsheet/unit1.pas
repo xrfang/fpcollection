@@ -91,7 +91,7 @@ end;
 procedure TForm1.pbPaint(Sender: TObject);
 begin
   ds.Visualize(pb.Canvas, ctBase,
-    '{"color": "EEEEEE", "border_color": "aaaaaa", "border_style": ".."}');
+    '{"color": ["EEEEEE", "aaaaaa"], "border": "-.."}');
   ds.Visualize(pb.Canvas, ctScat, '{"color": "#FF0000", "data": [1, 4], "pannable": false}');
   if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
   ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');

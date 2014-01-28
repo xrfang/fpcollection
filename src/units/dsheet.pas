@@ -254,21 +254,34 @@ end;
 
 procedure TDataSheet.DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
-  border_color: TColor;
-  border_width: Integer;
-  border_style: TPenStyle;
+  bcolor: TColor;
+  bwidth: Integer;
+  bstyle: string;
+  jd: TJSONData;
 begin
-  FBGColor := CSSColor(opts.Get('color', '#FFFFFF'));
-  border_color := CSSColor(opts.Get('border_color', '#FFFFFF'));
-  border_style := PenStyle(opts.Get('border_style', '-'));
-  border_width := opts.Get('border_width', 1);
+  FBGColor := clWhite;
+  bcolor := clBlack;
+  jd := opts.Find('color');
+  if jd <> nil then case jd.JSONType of
+    jtArray: begin
+      if jd.Count > 0 then FBGColor := CSSColor(jd.Items[0].AsString);
+      if jd.Count > 1 then bcolor := CSSColor(jd.Items[1].AsString)
+      else                 bcolor := FBGColor;
+    end;
+    jtString: begin
+      FBGColor := CSSColor(jd.AsString);
+      bcolor := FBGColor;
+    end;
+  end;
+  bstyle := opts.Get('border', '-');
+  bwidth := ifthen(bstyle = '=', 2, 1);
   with ACanvas do begin
     Brush.Color := FBGColor;
     FillRect(ARect);
-    if border_style <> psClear then with Pen do begin
-      Color := border_color;
-      Width := border_width;
-      Style := border_style;
+    with Pen do begin
+      Color := bcolor;
+      Width := bwidth;
+      Style := PenStyle(bstyle);
       Rectangle(ARect);
     end;
   end;
