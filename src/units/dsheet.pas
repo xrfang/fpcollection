@@ -402,8 +402,9 @@ begin
   end else if jd.JSONType = jtNumber then begin
     cc := jd.AsInteger;
   end else Exit;
-  w := opts.Get('width', 1) div 2;
+  w := opts.Get('width', FMagnifier) div 2;
   if w > FMagnifier div 2 then w := FMagnifier div 2;
+  if w < 1 then w := 1;
   cl := Length(clrs);
   with ACanvas do begin
     Pen.Style := psSolid;

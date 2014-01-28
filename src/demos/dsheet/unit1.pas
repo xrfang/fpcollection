@@ -97,7 +97,7 @@ begin
   ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
   ds.Visualize(pb.Canvas, ctLine, '{"data": 4, "color": "#0000FF", "style": "-", "node": true}');
   if not ds.SyncView(pb.Canvas, [5]) then Exit;
-  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "width": 10, "colors": 6}');
+  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "colors": 6}');
 end;
 
 procedure TForm1.ReloadDatasheet;
