@@ -42,7 +42,7 @@ type
     function CSSColor(spec: string): TColor;
     function CSSColor(spec: LongWord): TColor;
     function PenStyle(ps: string): TPenStyle;
-    procedure Range(c: Integer; slide: Boolean; var Min, Max: Real);
+    procedure Range(c: Integer; pannable: Boolean; var Min, Max: Real);
     function HMap(ARect: TRect; p: Integer): Integer;
     function HMap(ARect: TRect; Min, Max, p: Real): Integer;
     function VMap(ARect: TRect; Min, Max, p: Real): Integer;
@@ -69,8 +69,6 @@ type
     procedure Save(fn: string; fmt: string = '%e');
     function Export(fmt: string = '%0.4f'): TStringList;
     procedure Import(src: TStringList; WithHeaders: HeaderOpt);
-    function SyncView(ACanvas: TCanvas; sx, sy: Integer; slide: Boolean): Boolean;
-    function SyncView(ARect: TRect; sx, sy: Integer; slide: Boolean): Boolean;
     function SyncView(ACanvas: TCanvas; series: array of Integer): Boolean;
     function SyncView(ARect: TRect; series: array of Integer): Boolean;
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: string = '';
@@ -195,12 +193,12 @@ begin
   FMagnifier := AValue;
 end;
 
-procedure TDataSheet.Range(c: Integer; slide: Boolean; var Min, Max: Real);
+procedure TDataSheet.Range(c: Integer; pannable: Boolean; var Min, Max: Real);
 var
   i, ap, sp: Integer;
   v: Real;
 begin
-  if slide then begin
+  if pannable then begin
     ap := FAnchor;
     sp := FAnchor - FSpan;
   end else begin
@@ -231,34 +229,12 @@ begin
   Exit(True);
 end;
 
-function TDataSheet.SyncView(ARect: TRect; sx, sy: Integer; slide: Boolean): Boolean;
-begin
-  FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
-  if FSpan <= 0 then Exit(False);
-  if FAnchor < 0 then FAnchor += Rows;
-  if FAnchor < FSpan then FAnchor := FSpan;
-  FMinX := 1e300; FMaxX := -1e300;
-  FMinY := 1e300; FMaxY := -1e300;
-  if (sx > Cols) or (sy > Cols) then Exit(False);
-  Range(sx, slide, FMinX, FMaxX);
-  Range(sy, slide, FMinY, FMaxY);
-  Exit(True);
-end;
-
 function TDataSheet.SyncView(ACanvas: TCanvas; series: array of Integer): Boolean;
 var
   r: TRect;
 begin
   with ACanvas do r := Rect(0, 0, Width, Height);
   Result := SyncView(r, series);
-end;
-
-function TDataSheet.SyncView(ACanvas: TCanvas; sx, sy: Integer; slide: Boolean): Boolean;
-var
-  r: TRect;
-begin
-  with ACanvas do r := Rect(0, 0, Width, Height);
-  Result := SyncView(r, sx, sy, slide);
 end;
 
 function TDataSheet.HMap(ARect: TRect; p: Integer): Integer;
@@ -454,7 +430,7 @@ procedure TDataSheet.DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject)
 var
   ja: TJSONArray;
   x, y, xc, yc, fp, lp, w, i: Integer;
-  slide: Boolean;
+  pannable: Boolean;
   clr: TColor;
   function XMap(p: Real): Integer;
   begin
@@ -468,18 +444,27 @@ var
   end;
 begin
   if Cols < 2 then Exit;
+  FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
+  if FSpan <= 0 then Exit;
+  if FAnchor < 0 then FAnchor += Rows;
+  if FAnchor < FSpan then FAnchor := FSpan;
   ja := opts.Find('data', jtArray) as TJSONArray;
   xc := 1; yc := 2;
   if ja <> nil then begin
     if ja.Count > 0 then xc := ja[0].AsInteger;
     if ja.Count > 1 then yc := ja[1].AsInteger;
   end;
+  if (xc < 1) or (xc > Cols) or (yc < 1) or (yc > Cols) then Exit;
   clr := CSSColor(opts.Get('color', '#000000'));
-  slide := opts.Get('slide', False);
   w := opts.Get('width', 0);
   if (w < 1) or (w > FMagnifier) then w := FMagnifier;
   w := w div 2; if w = 0 then w := 1;
-  if slide then begin
+  pannable := opts.Get('pannable', False);
+  FMinX := 1e300; FMaxX := -1e300;
+  FMinY := 1e300; FMaxY := -1e300;
+  Range(xc, pannable, FMinX, FMaxX);
+  Range(yc, pannable, FMinY, FMaxY);
+  if pannable then begin
     fp := FAnchor - FSpan + 1;
     lp := FAnchor;
   end else begin

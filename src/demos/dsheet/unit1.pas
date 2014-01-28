@@ -92,13 +92,12 @@ procedure TForm1.pbPaint(Sender: TObject);
 begin
   ds.Visualize(pb.Canvas, ctBase,
     '{"color": "EEEEEE", "border_color": "aaaaaa", "border_style": ".."}');
-  //if not ds.SyncView(pb.Canvas, [1, 2, 3, 4, 5]) then Exit;
-  //if not ds.SyncView(pb.Canvas, [5]) then Exit;
-  if not ds.SyncView(pb.Canvas, 1, 2, False) then Exit;
-  ds.Visualize(pb.Canvas, ctScat, '{"color": "#FF0000", "data": [1, 4], "slide": false}');
-//  ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
-//  ds.Visualize(pb.Canvas, ctLine, '{"data": 5, "color": "#0000FF", "style": "..", "shape": "*"}');
-//  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "width": 10, "colors": 6}');
+  ds.Visualize(pb.Canvas, ctScat, '{"color": "#FF0000", "data": [1, 4], "pannable": false}');
+  if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
+  ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
+  ds.Visualize(pb.Canvas, ctLine, '{"data": 4, "color": "#0000FF", "style": "..", "shape": "*"}');
+  if not ds.SyncView(pb.Canvas, [5]) then Exit;
+  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "width": 10, "colors": 6}');
 end;
 
 procedure TForm1.ReloadDatasheet;
