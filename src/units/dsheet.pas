@@ -169,8 +169,8 @@ function TDataSheet.CSSColor(spec: LongWord): TColor;
 var
   r, g, b: Byte;
 begin
-  r := spec and $FF0000;
-  g := spec and $00FF00;
+  r := spec and $FF0000 shr 16;
+  g := spec and $00FF00 shr 8;
   b := spec and $0000FF;
   Result := RGBToColor(r, g, b);
 end;
@@ -355,7 +355,7 @@ end;
 
 procedure TDataSheet.DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
-  colors: array of TColor;
+  clrs: array of TColor;
   dp, ds, cc, cl, w, i, x, d1, d2: Integer;
   jd: TJSONData;
 begin
@@ -371,22 +371,23 @@ begin
     if jd.Count > 1 then ds := jd.Items[1].AsInteger;
   end;
   if (dp = 0) or (dp > Cols) then Exit;
-  colors := nil;
+  clrs := nil;
   jd := opts.Find('colors');
   if jd = nil then begin
-    SetLength(colors, 1);
-    colors[0] := clBlack;
+    SetLength(clrs, 1);
+    clrs[0] := clBlack;
   end else if jd.JSONType = jtString then begin
-    SetLength(colors, 1);
-    colors[0] := CSSColor(jd.AsString);
+    SetLength(clrs, 1);
+    clrs[0] := CSSColor(jd.AsString);
   end else if jd.JSONType = jtArray then begin
-    SetLength(colors, jd.Count);
-    for i := 0 to jd.Count - 1 do colors[i] := CSSColor(jd.Items[i].AsString);
+    SetLength(clrs, jd.Count);
+    for i := 0 to jd.Count - 1 do clrs[i] := CSSColor(jd.Items[i].AsString);
   end else if jd.JSONType = jtNumber then begin
     cc := jd.AsInteger;
   end else Exit;
   w := opts.Get('width', 1) div 2;
-  cl := Length(colors);
+  if w > FMagnifier div 2 then w := FMagnifier div 2;
+  cl := Length(clrs);
   with ACanvas do begin
     Pen.Style := psSolid;
     Pen.Width := 1;
@@ -396,8 +397,11 @@ begin
       x := HMap(ARect, i - FAnchor + FSpan - 1);
       d1 := VMap(ARect, FMin, FMax, Data[i][dp]);
       if ds > 0 then d2 := VMap(ARect, FMin, FMax, Data[i][ds])
-      else           d2 := VMap(ARect, FMin, FMax, FMin);
-      //TODO: set color
+      else           d2 := VMap(ARect, FMin, FMax, 0);
+      if cl > 0 then Brush.Color := clrs[i mod cl]
+      else           Brush.Color := CSSColor(round(Data[i][cc]));
+      if Brush.Color = FBGColor then Pen.Color := InvertColor(FBGColor)
+      else                           Pen.Color := Brush.Color;
       if w = 0 then begin
         MoveTo(x, d1);
         LineTo(x, d2);

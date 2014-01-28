@@ -89,13 +89,13 @@ end;
 
 procedure TForm1.pbPaint(Sender: TObject);
 begin
-//  if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
+//  if not ds.SyncView(pb.Canvas, [1, 2, 3, 4, 5]) then Exit;
   if not ds.SyncView(pb.Canvas, [5]) then Exit;
   ds.Visualize(pb.Canvas, ctBase,
     '{"color": "EEEEEE", "border_color": "aaaaaa", "border_style": ".."}');
 //  ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
-//  ds.Visualize(pb.Canvas, ctLine, '{"color": "#0000FF", "style": "..", "shape": "*"}');
-  ds.Visualize(pb.Canvas, ctBars, '{"data": 5}');
+//  ds.Visualize(pb.Canvas, ctLine, '{"data": 5, "color": "#0000FF", "style": "..", "shape": "*"}');
+  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "width": 10, "colors": 6}');
 end;
 
 procedure TForm1.ReloadDatasheet;
@@ -104,6 +104,8 @@ var
 begin
   for i := 0 to ds.Rows - 1 do begin
     ds[i][5] := ds[i][4] - ds[i][1];
+    if ds[i][5] > 0 then ds[i][6] := 0
+    else                 ds[i][6] := $EEEEEE;
   end;
   ds.Headers[5] := 'diff';
   lv.Clear;
