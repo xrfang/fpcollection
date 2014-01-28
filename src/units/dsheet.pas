@@ -32,15 +32,17 @@ type
     FAnchor: Integer;
     FSpan: Integer;
     FBGColor: TColor;
-    FMin, FMax: Real;
+    FMinX, FMaxX: Real;
+    FMinY, FMaxY: Real;
     function GetHeader(Index: Real): string;
     function GetRow(Index: Real): Row;
     function GetRowCount: Integer;
     procedure SetHeader(Index: Real; AValue: string);
+    procedure SetMagnifier(AValue: Integer);
     function CSSColor(spec: string): TColor;
     function CSSColor(spec: LongWord): TColor;
     function PenStyle(ps: string): TPenStyle;
-    procedure SetMagnifier(AValue: Integer);
+    procedure Range(c: Integer; slide: Boolean; var Min, Max: Real);
     function HMap(ARect: TRect; p: Integer): Integer;
     function HMap(ARect: TRect; Min, Max, p: Real): Integer;
     function VMap(ARect: TRect; Min, Max, p: Real): Integer;
@@ -67,6 +69,8 @@ type
     procedure Save(fn: string; fmt: string = '%e');
     function Export(fmt: string = '%0.4f'): TStringList;
     procedure Import(src: TStringList; WithHeaders: HeaderOpt);
+    function SyncView(ACanvas: TCanvas; sx, sy: Integer; slide: Boolean): Boolean;
+    function SyncView(ARect: TRect; sx, sy: Integer; slide: Boolean): Boolean;
     function SyncView(ACanvas: TCanvas; series: array of Integer): Boolean;
     function SyncView(ARect: TRect; series: array of Integer): Boolean;
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: string = '';
@@ -191,25 +195,53 @@ begin
   FMagnifier := AValue;
 end;
 
+procedure TDataSheet.Range(c: Integer; slide: Boolean; var Min, Max: Real);
+var
+  i, ap, sp: Integer;
+  v: Real;
+begin
+  if slide then begin
+    ap := FAnchor;
+    sp := FAnchor - FSpan;
+  end else begin
+    ap := Rows - 1;
+    sp := 0;
+  end;
+  for i := ap downto sp do begin
+    v := Data[i][c];
+    if v > Max then Max := v;
+    if v < Min then Min := v;
+  end;
+end;
+
 function TDataSheet.SyncView(ARect: TRect; series: array of Integer): Boolean;
 var
-  i, s: Integer;
-  v: Real;
+  s: Integer;
 begin
   if Length(series) = 0 then Exit(False);
   FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
   if FSpan <= 0 then Exit(False);
   if FAnchor < 0 then FAnchor += Rows;
   if FAnchor < FSpan then FAnchor := FSpan;
-  FMin := 1e300; FMax := -1e300;
+  FMinY := 1e300; FMaxY := -1e300;
   for s := 0 to Length(series) - 1 do begin
     if series[s] > Cols then Exit(False);
-    for i := FAnchor downto FAnchor - FSpan + 1 do begin
-      v := Data[i][series[s]];
-      if v > FMax then FMax := v;
-      if v < FMin then FMin := v;
-    end;
+    Range(series[s], True, FMinY, FMaxY);
   end;
+  Exit(True);
+end;
+
+function TDataSheet.SyncView(ARect: TRect; sx, sy: Integer; slide: Boolean): Boolean;
+begin
+  FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
+  if FSpan <= 0 then Exit(False);
+  if FAnchor < 0 then FAnchor += Rows;
+  if FAnchor < FSpan then FAnchor := FSpan;
+  FMinX := 1e300; FMaxX := -1e300;
+  FMinY := 1e300; FMaxY := -1e300;
+  if (sx > Cols) or (sy > Cols) then Exit(False);
+  Range(sx, slide, FMinX, FMaxX);
+  Range(sy, slide, FMinY, FMaxY);
   Exit(True);
 end;
 
@@ -219,6 +251,14 @@ var
 begin
   with ACanvas do r := Rect(0, 0, Width, Height);
   Result := SyncView(r, series);
+end;
+
+function TDataSheet.SyncView(ACanvas: TCanvas; sx, sy: Integer; slide: Boolean): Boolean;
+var
+  r: TRect;
+begin
+  with ACanvas do r := Rect(0, 0, Width, Height);
+  Result := SyncView(r, sx, sy, slide);
 end;
 
 function TDataSheet.HMap(ARect: TRect; p: Integer): Integer;
@@ -260,7 +300,7 @@ end;
 
 procedure TDataSheet.DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
-  Color: TColor;
+  clr: TColor;
   oc, hc, lc, cc, i, x: Integer;
   o, h, l, c: Integer;
   color_0, color_1, color_2: TColor;
@@ -281,20 +321,20 @@ begin
     Pen.Width := 1;
     for i := FAnchor - FSpan + 1 to FAnchor do begin
       x := HMap(ARect, i - FAnchor + FSpan - 1);
-      o := VMap(ARect, FMin, FMax, Data[i][oc]);
-      h := VMap(ARect, FMin, FMax, Data[i][hc]);
-      l := VMap(ARect, FMin, FMax, Data[i][lc]);
-      c := VMap(ARect, FMin, FMax, Data[i][cc]);
+      o := VMap(ARect, FMinY, FMaxY, Data[i][oc]);
+      h := VMap(ARect, FMinY, FMaxY, Data[i][hc]);
+      l := VMap(ARect, FMinY, FMaxY, Data[i][lc]);
+      c := VMap(ARect, FMinY, FMaxY, Data[i][cc]);
       case Sign(Data[i][cc] - Data[i][oc]) of
-        1: Color := color_1;
-        -1: Color := color_0;
-        else Color := color_2;
+        1: clr := color_1;
+        -1: clr := color_0;
+        else clr := color_2;
       end;
-      Pen.Color := Color;
+      Pen.Color := clr;
       MoveTo(x, h);
       LineTo(x, l);
       if FMagnifier >= 5 then begin
-        Brush.Color := ifthen(Color = color_1, FBGColor, Color);
+        Brush.Color := ifthen(clr = color_1, FBGColor, clr);
         if o = c then begin
           MoveTo(x - FMagnifier div 2, o);
           LineTo(x + FMagnifier div 2, c);
@@ -341,12 +381,12 @@ begin
     Pen.Color := color;
     Pen.Width := w;
     x := HMap(ARect, 0);
-    d := VMap(ARect, FMin, FMax, Data[FAnchor - FSpan + 1][c]);
+    d := VMap(ARect, FMinY, FMaxY, Data[FAnchor - FSpan + 1][c]);
     MoveTo(x, d);
     DrawDataPoint(x, d);
     for i := FAnchor - FSpan + 1 to FAnchor do begin
       x := HMap(ARect, i - FAnchor + FSpan - 1);
-      d := VMap(ARect, FMin, FMax, Data[i][c]);
+      d := VMap(ARect, FMinY, FMaxY, Data[i][c]);
       LineTo(x, d);
       DrawDataPoint(x, d);
     end;
@@ -395,9 +435,9 @@ begin
     Brush.Color := clMaroon;
     for i := FAnchor - FSpan + 1 to FAnchor do begin
       x := HMap(ARect, i - FAnchor + FSpan - 1);
-      d1 := VMap(ARect, FMin, FMax, Data[i][dp]);
-      if ds > 0 then d2 := VMap(ARect, FMin, FMax, Data[i][ds])
-      else           d2 := VMap(ARect, FMin, FMax, 0);
+      d1 := VMap(ARect, FMinY, FMaxY, Data[i][dp]);
+      if ds > 0 then d2 := VMap(ARect, FMinY, FMaxY, Data[i][ds])
+      else           d2 := VMap(ARect, FMinY, FMaxY, 0);
       if cl > 0 then Brush.Color := clrs[i mod cl]
       else           Brush.Color := CSSColor(round(Data[i][cc]));
       if Brush.Color = FBGColor then Pen.Color := InvertColor(FBGColor)
@@ -411,8 +451,51 @@ begin
 end;
 
 procedure TDataSheet.DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+var
+  ja: TJSONArray;
+  x, y, xc, yc, fp, lp, w, i: Integer;
+  slide: Boolean;
+  clr: TColor;
+  function XMap(p: Real): Integer;
+  begin
+    with ARect do
+      Exit(Left + round((p - FMinX) / (FMaxX - FMinX) * (Right - Left)));
+  end;
+  function YMap(p: Real): Integer;
+  begin
+    with ARect do
+      Exit(Top + round((FMaxY - p) / (FMaxY - FMinY) * (Bottom - Top)));
+  end;
 begin
-
+  if Cols < 2 then Exit;
+  ja := opts.Find('data', jtArray) as TJSONArray;
+  xc := 1; yc := 2;
+  if ja <> nil then begin
+    if ja.Count > 0 then xc := ja[0].AsInteger;
+    if ja.Count > 1 then yc := ja[1].AsInteger;
+  end;
+  clr := CSSColor(opts.Get('color', '#000000'));
+  slide := opts.Get('slide', False);
+  w := opts.Get('width', 0);
+  if (w < 1) or (w > FMagnifier) then w := FMagnifier;
+  w := w div 2; if w = 0 then w := 1;
+  if slide then begin
+    fp := FAnchor - FSpan + 1;
+    lp := FAnchor;
+  end else begin
+    fp := 0;
+    lp := Rows - 1;
+  end;
+  with ACanvas do begin
+    Pen.Style := psSolid;
+    Pen.Width := 1;
+    Pen.Color := clr;
+    for i := fp to lp do begin
+      x := XMap(Data[i][xc]);
+      y := YMap(Data[i][yc]);
+      Rectangle(x - w, y - w, x + w, y + w)
+    end;
+  end;
 end;
 
 constructor TDataSheet.Create(ADefault: Double);
