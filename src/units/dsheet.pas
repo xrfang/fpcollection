@@ -162,7 +162,7 @@ begin
     b := StrToInt('$' + Copy(spec, 5, 2));
     Exit(RGBToColor(r, g, b));
   except end;
-  raise Exception.CreateFmt('Color value not recognized: %s', [spec]);
+  Exit(clBlack);
 end;
 
 function TDataSheet.CSSColor(spec: LongWord): TColor;
@@ -354,8 +354,56 @@ begin
 end;
 
 procedure TDataSheet.DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
+var
+  colors: array of TColor;
+  dp, ds, cc, cl, w, i, x, d1, d2: Integer;
+  jd: TJSONData;
 begin
-
+  if Cols < 1 then Exit;
+  jd := opts.Find('data');
+  dp := 0; ds := 0;
+  if jd = nil then
+    dp := 1
+  else if jd.JSONType = jtNumber then
+    dp := jd.AsInteger
+  else if jd.JSONType = jtArray then begin
+    if jd.Count > 0 then dp := jd.Items[0].AsInteger;
+    if jd.Count > 1 then ds := jd.Items[1].AsInteger;
+  end;
+  if (dp = 0) or (dp > Cols) then Exit;
+  colors := nil;
+  jd := opts.Find('colors');
+  if jd = nil then begin
+    SetLength(colors, 1);
+    colors[0] := clBlack;
+  end else if jd.JSONType = jtString then begin
+    SetLength(colors, 1);
+    colors[0] := CSSColor(jd.AsString);
+  end else if jd.JSONType = jtArray then begin
+    SetLength(colors, jd.Count);
+    for i := 0 to jd.Count - 1 do colors[i] := CSSColor(jd.Items[i].AsString);
+  end else if jd.JSONType = jtNumber then begin
+    cc := jd.AsInteger;
+  end else Exit;
+  w := opts.Get('width', 1) div 2;
+  cl := Length(colors);
+  with ACanvas do begin
+    Pen.Style := psSolid;
+    Pen.Width := 1;
+    Pen.Color := clMaroon;
+    Brush.Color := clMaroon;
+    for i := FAnchor - FSpan + 1 to FAnchor do begin
+      x := HMap(ARect, i - FAnchor + FSpan - 1);
+      d1 := VMap(ARect, FMin, FMax, Data[i][dp]);
+      if ds > 0 then d2 := VMap(ARect, FMin, FMax, Data[i][ds])
+      else           d2 := VMap(ARect, FMin, FMax, FMin);
+      //TODO: set color
+      if w = 0 then begin
+        MoveTo(x, d1);
+        LineTo(x, d2);
+      end else Rectangle(x - w, d1, x + w, d2);
+    end;
+  end;
 end;
 
 procedure TDataSheet.DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
@@ -541,7 +589,6 @@ begin
     ctLine: DrawLine(ACanvas, r, opts);
     ctBars: DrawBars(ACanvas, r, opts);
     ctScat: DrawScat(ACanvas, r, opts);
-    else raise Exception.CreateFmt('Invalid chart type: %d', [AType]);
   end;
 end;
 

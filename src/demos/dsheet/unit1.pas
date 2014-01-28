@@ -89,17 +89,23 @@ end;
 
 procedure TForm1.pbPaint(Sender: TObject);
 begin
-  if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
+//  if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
+  if not ds.SyncView(pb.Canvas, [5]) then Exit;
   ds.Visualize(pb.Canvas, ctBase,
     '{"color": "EEEEEE", "border_color": "aaaaaa", "border_style": ".."}');
-  ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
-  ds.Visualize(pb.Canvas, ctLine, '{"color": "#0000FF", "style": "..", "shape": "*"}');
+//  ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
+//  ds.Visualize(pb.Canvas, ctLine, '{"color": "#0000FF", "style": "..", "shape": "*"}');
+  ds.Visualize(pb.Canvas, ctBars, '{"data": 5}');
 end;
 
 procedure TForm1.ReloadDatasheet;
 var
   i: Integer;
 begin
+  for i := 0 to ds.Rows - 1 do begin
+    ds[i][5] := ds[i][4] - ds[i][1];
+  end;
+  ds.Headers[5] := 'diff';
   lv.Clear;
   lv.Columns.Clear;
   for i := 0 to ds.Cols do with lv.Columns.Add do begin
