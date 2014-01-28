@@ -179,7 +179,7 @@ end;
 
 function TDataSheet.PenStyle(ps: string): TPenStyle;
 begin
-  if ps = '-' then Exit(psSolid);
+  if (ps = '-') or (ps = '=') then Exit(psSolid);
   if ps = '--' then Exit(psDash);
   if ps = '..' then Exit(psDot);
   if ps = '-.' then Exit(psDashDot);
@@ -326,34 +326,35 @@ procedure TDataSheet.DrawLine(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject)
 var
   color: TColor;
   w, i, x, c, d: Integer;
-  style: TPenStyle;
-  shape: string;
+  style: string;
+  node: Boolean;
   procedure DrawDataPoint(x, y: Integer);
   var
     r: Integer;
     ps: TPenStyle;
   begin
-    if (shape <> '*') and (shape <> 'o') then Exit;
-    r := FMagnifier div 2;
-    if r > w + 2 then r := w + 2;
+    if not node then Exit;
+    r := w + 2;
+    if r > FMagnifier div 2 then r := FMagnifier div 2;
     with ACanvas do begin
-      if shape = '*' then Brush.Color := color else Brush.Color := FBGColor;
       ps := Pen.Style;
       Pen.Style := psSolid;
+      Pen.Width := 1;
       EllipseC(x, y, r, r);
       Pen.Style := ps;
+      Pen.Width := w;
     end;
   end;
 begin
   if Cols < 1 then Exit;
   c := opts.Get('data', 1);
   color := CSSColor(opts.Get('color', '#000000'));
-  style := PenStyle(opts.Get('style', '-'));
-  shape := opts.Get('shape', '');
-  w := opts.Get('width', 1);
+  style := opts.Get('style', '-');
+  node := opts.Get('node', False);
+  w := ifthen(style = '=', 2, 1);
   if w > FMagnifier div 2 then w := FMagnifier div 2;
   with ACanvas do begin
-    Pen.Style := style;
+    Pen.Style := PenStyle(style);
     Pen.Color := color;
     Pen.Width := w;
     x := HMap(ARect, 0);

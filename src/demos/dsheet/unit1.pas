@@ -95,7 +95,7 @@ begin
   ds.Visualize(pb.Canvas, ctScat, '{"color": "#FF0000", "data": [1, 4], "pannable": false}');
   if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
   ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
-  ds.Visualize(pb.Canvas, ctLine, '{"data": 4, "color": "#0000FF", "style": "..", "shape": "*"}');
+  ds.Visualize(pb.Canvas, ctLine, '{"data": 4, "color": "#0000FF", "style": "-", "node": true}');
   if not ds.SyncView(pb.Canvas, [5]) then Exit;
   ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "width": 10, "colors": 6}');
 end;
