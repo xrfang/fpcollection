@@ -27,13 +27,13 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lvData(Sender: TObject; Item: TListItem);
-    procedure pbClick(Sender: TObject);
+    procedure pbMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure pbPaint(Sender: TObject);
   private
     ds: TDataSheet;
     CrossHair: Boolean;
-    cur: TPoint;
     procedure ReloadDatasheet;
   public
     procedure Log(msg: string);
@@ -88,7 +88,8 @@ procedure TForm1.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = VK_ESCAPE then begin
     CrossHair := False;
-    pb.Invalidate;
+    pb.Cursor := crDefault;
+    ds.ShowCursor(pb.Canvas, -1, -1);
   end;
 end;
 
@@ -101,16 +102,19 @@ begin
   for c := 1 to ds.Cols do Item.SubItems.Add(Format('%0.2f', [ds[i][c]]));
 end;
 
-procedure TForm1.pbClick(Sender: TObject);
+procedure TForm1.pbMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
 begin
   CrossHair := True;
+  pb.Cursor := crNone;
 end;
 
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
-  cur.X := X;
-  cur.Y := Y;
-  pb.Invalidate;
+  if CrossHair then begin
+    ds.ShowCursor(pb.Canvas, -1, -1);
+    ds.ShowCursor(pb.Canvas, X, Y);
+  end;
 end;
 
 procedure TForm1.pbPaint(Sender: TObject);
@@ -123,7 +127,6 @@ begin
   ds.Visualize(pb.Canvas, ctLine, '{"data": 4, "color": "#0000FF", "style": "-", "node": true}');
   if not ds.SyncView(pb.Canvas, [5]) then Exit;
   ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "colors": 6}');
-  if CrossHair then ds.ShowCursor(pb.Canvas, cur.X, cur.Y);
 end;
 
 procedure TForm1.ReloadDatasheet;

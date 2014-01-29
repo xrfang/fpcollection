@@ -34,6 +34,7 @@ type
     FBGColor: TColor;
     FMinX, FMaxX: Real;
     FMinY, FMaxY: Real;
+    FCurX, FCurY: Integer;
     function GetHeader(Index: Real): string;
     function GetRow(Index: Real): Row;
     function GetRowCount: Integer;
@@ -75,8 +76,7 @@ type
       ARect: PRect = nil);
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: TJSONObject;
       ARect: PRect = nil);
-    procedure ShowCursor(ACanvas: TCanvas; X, Y: Integer; clr: TColor = -1;
-      ARect: PRect = nil);
+    procedure ShowCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect = nil);
   end;
 
 implementation
@@ -512,6 +512,8 @@ begin
   FAnchor := -1;
   FSpan := 0;
   FBGColor := clWhite;
+  FCurX := -1;
+  FCurY := -1;
 end;
 
 function TDataSheet.Insert(Index: Real): Row;
@@ -681,19 +683,22 @@ begin
   end;
 end;
 
-procedure TDataSheet.ShowCursor(ACanvas: TCanvas; X, Y: Integer; clr: TColor;
-  ARect: PRect);
+procedure TDataSheet.ShowCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect);
 var
   r: TRect;
 begin
   if ARect = nil then r := Rect(0, 0, ACanvas.Width, ACanvas.Height)
   else                r := ARect^;
   with ACanvas do begin
-    Pen.Style := psSolid;
     Pen.Width := 1;
-    if clr < 0 then Pen.Color := InvertColor(FBGColor) else Pen.Color := clr;
-    MoveTo(X, r.Top); LineTo(X, r.Bottom);
-    MoveTo(r.Left, Y); LineTo(r.Right, Y);
+    Pen.Style := psSolid;
+    Pen.Color := clWhite;
+    Pen.Mode := pmXor;
+    if X >= 0 then FCurX := X;
+    if Y >= 0 then FCurY := Y;
+    MoveTo(FCurX, r.Top); LineTo(FCurX, r.Bottom);
+    MoveTo(r.Left, FCurY); LineTo(r.Right, FCurY);
+    Pen.Mode := pmCopy;
   end;
 end;
 

@@ -33,7 +33,7 @@ object Form1: TForm1
         Top = 0
         Width = 305
         Align = alClient
-        OnClick = pbClick
+        OnMouseDown = pbMouseDown
         OnMouseMove = pbMouseMove
         OnPaint = pbPaint
       end
