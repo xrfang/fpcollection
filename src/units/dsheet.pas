@@ -75,6 +75,8 @@ type
       ARect: PRect = nil);
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: TJSONObject;
       ARect: PRect = nil);
+    procedure ShowCursor(ACanvas: TCanvas; X, Y: Integer; clr: TColor = -1;
+      ARect: PRect = nil);
   end;
 
 implementation
@@ -471,9 +473,9 @@ begin
   end;
   if (xc < 1) or (xc > Cols) or (yc < 1) or (yc > Cols) then Exit;
   clr := CSSColor(opts.Get('color', '#000000'));
-  w := opts.Get('width', 0);
-  if (w < 1) or (w > FMagnifier) then w := FMagnifier;
-  w := w div 2; if w = 0 then w := 1;
+  w := opts.Get('width', 2);
+  if w > FMagnifier div 2 then w := FMagnifier div 2;
+  if w < 1 then w := 1;
   pannable := opts.Get('pannable', False);
   FMinX := 1e300; FMaxX := -1e300;
   FMinY := 1e300; FMaxY := -1e300;
@@ -676,6 +678,22 @@ begin
     ctLine: DrawLine(ACanvas, r, opts);
     ctBars: DrawBars(ACanvas, r, opts);
     ctScat: DrawScat(ACanvas, r, opts);
+  end;
+end;
+
+procedure TDataSheet.ShowCursor(ACanvas: TCanvas; X, Y: Integer; clr: TColor;
+  ARect: PRect);
+var
+  r: TRect;
+begin
+  if ARect = nil then r := Rect(0, 0, ACanvas.Width, ACanvas.Height)
+  else                r := ARect^;
+  with ACanvas do begin
+    Pen.Style := psSolid;
+    Pen.Width := 1;
+    if clr < 0 then Pen.Color := InvertColor(FBGColor) else Pen.Color := clr;
+    MoveTo(X, r.Top); LineTo(X, r.Bottom);
+    MoveTo(r.Left, Y); LineTo(r.Right, Y);
   end;
 end;
 
