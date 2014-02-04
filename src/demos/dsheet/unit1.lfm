@@ -17,7 +17,7 @@ object Form1: TForm1
     Left = 0
     Height = 300
     Top = 0
-    Width = 309
+    Width = 300
     ActivePage = TabSheet1
     Align = alClient
     TabIndex = 0
@@ -26,12 +26,12 @@ object Form1: TForm1
     object TabSheet1: TTabSheet
       Caption = 'Chart'
       ClientHeight = 268
-      ClientWidth = 305
+      ClientWidth = 296
       object pb: TPaintBox
         Left = 0
         Height = 268
         Top = 0
-        Width = 305
+        Width = 296
         Align = alClient
         OnMouseDown = pbMouseDown
         OnMouseMove = pbMouseMove
@@ -41,7 +41,7 @@ object Form1: TForm1
     object TabSheet2: TTabSheet
       Caption = 'Data'
       ClientHeight = 268
-      ClientWidth = 305
+      ClientWidth = 296
       object lv: TListView
         Left = 0
         Height = 268
@@ -63,7 +63,7 @@ object Form1: TForm1
     object TabSheet3: TTabSheet
       Caption = 'Message'
       ClientHeight = 268
-      ClientWidth = 305
+      ClientWidth = 296
       object Memo1: TMemo
         Left = 0
         Height = 268
@@ -75,20 +75,20 @@ object Form1: TForm1
     end
   end
   object Panel1: TPanel
-    Left = 309
+    Left = 300
     Height = 300
     Top = 0
-    Width = 88
+    Width = 97
     Align = alRight
     BevelOuter = bvNone
     ClientHeight = 300
-    ClientWidth = 88
+    ClientWidth = 97
     TabOrder = 1
     object Button1: TButton
       Left = 7
       Height = 25
       Top = 6
-      Width = 75
+      Width = 83
       Caption = 'Import'
       OnClick = Button1Click
       TabOrder = 0
@@ -97,14 +97,62 @@ object Form1: TForm1
       Left = 7
       Height = 25
       Top = 35
-      Width = 75
+      Width = 83
       Caption = 'Load'
       OnClick = Button2Click
       TabOrder = 1
     end
+    object Panel2: TPanel
+      Left = 0
+      Height = 194
+      Top = 106
+      Width = 97
+      Align = alBottom
+      BevelInner = bvLowered
+      BevelOuter = bvNone
+      ClientHeight = 194
+      ClientWidth = 97
+      TabOrder = 2
+      object leScatX: TLabeledEdit
+        Left = 4
+        Height = 28
+        Top = 22
+        Width = 87
+        EditLabel.AnchorSideLeft.Control = leScatX
+        EditLabel.AnchorSideRight.Control = leScatX
+        EditLabel.AnchorSideRight.Side = asrBottom
+        EditLabel.AnchorSideBottom.Control = leScatX
+        EditLabel.Left = 4
+        EditLabel.Height = 19
+        EditLabel.Top = 0
+        EditLabel.Width = 87
+        EditLabel.Caption = 'Data.X'
+        EditLabel.ParentColor = False
+        ReadOnly = True
+        TabOrder = 0
+      end
+      object leScatY: TLabeledEdit
+        Left = 4
+        Height = 28
+        Top = 70
+        Width = 87
+        EditLabel.AnchorSideLeft.Control = leScatY
+        EditLabel.AnchorSideRight.Control = leScatY
+        EditLabel.AnchorSideRight.Side = asrBottom
+        EditLabel.AnchorSideBottom.Control = leScatY
+        EditLabel.Left = 4
+        EditLabel.Height = 19
+        EditLabel.Top = 48
+        EditLabel.Width = 87
+        EditLabel.Caption = 'Data.Y'
+        EditLabel.ParentColor = False
+        ReadOnly = True
+        TabOrder = 1
+      end
+    end
   end
   object od: TOpenDialog
-    left = 352
-    top = 117
+    left = 152
+    top = 56
   end
 end

@@ -12,9 +12,12 @@ type
   TForm1 = class(TForm)
     Button1: TButton;
     Button2: TButton;
+    leScatX: TLabeledEdit;
+    leScatY: TLabeledEdit;
     lv: TListView;
     Memo1: TMemo;
     od: TOpenDialog;
+    Panel2: TPanel;
     pb: TPaintBox;
     Panel1: TPanel;
     pc: TPageControl;
@@ -110,10 +113,17 @@ begin
 end;
 
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var
+  vx: Integer;
+  vy: Real;
 begin
   if CrossHair then begin
     ds.DrawCursor(pb.Canvas, -1, -1);
     ds.DrawCursor(pb.Canvas, X, Y);
+    ds.MapS(pb.Canvas, X, Y, vx, vy);
+    leScatX.Text := '';
+    if vx >= 0 then leScatX.Text := Format('%s', [ds[vx].Header]);
+    leScatY.Text := Format('%0.2f', [vy]);
   end;
 end;
 
@@ -122,11 +132,11 @@ begin
   ds.Visualize(pb.Canvas, ctBase,
     '{"color": ["EEEEEE", "aaaaaa"], "border": "-.."}');
   ds.Visualize(pb.Canvas, ctScat, '{"color": "#FF0000", "data": [1, 4], "pannable": false}');
+  if not ds.SyncView(pb.Canvas, [5]) then Exit;
+  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "colors": 6}');
   if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
   ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
   ds.Visualize(pb.Canvas, ctLine, '{"data": 4, "color": "#0000FF", "style": "-", "node": true}');
-  if not ds.SyncView(pb.Canvas, [5]) then Exit;
-  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "colors": 6}');
 end;
 
 procedure TForm1.ReloadDatasheet;

@@ -76,6 +76,10 @@ type
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: TJSONObject;
       ARect: PRect = nil);
     procedure DrawCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect = nil);
+    procedure MapS(ACanvas: TCanvas; px, py: Integer; out X: Integer;
+      out Y: Real; ARect: PRect = nil);
+    procedure MapXY(ACanvas: TCanvas; px, py: Integer; out X, Y: Real;
+      ARect: PRect = nil);
   end;
 
 implementation
@@ -684,6 +688,31 @@ begin
     MoveTo(r.Left, FCurY); LineTo(r.Right, FCurY);
     Pen.Mode := pmCopy;
   end;
+end;
+
+procedure TDataSheet.MapS(ACanvas: TCanvas; px, py: Integer; out X: Integer;
+  out Y: Real; ARect: PRect);
+var
+  r: TRect;
+begin
+  if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
+  else                r := ARect^;
+  if (r.Left = r.Right) or (r.Top = r.Bottom) then Exit;
+  X := trunc((px - r.Left) / FMagnifier / 2) + FAnchor - FSpan + 1;
+  if X >= Rows then X := -1;
+  Y := FMinY + (FMaxY - FMinY) * (r.Bottom - py) / (r.Bottom - r.Top);
+end;
+
+procedure TDataSheet.MapXY(ACanvas: TCanvas; px, py: Integer; out X, Y: Real;
+  ARect: PRect);
+var
+  r: TRect;
+begin
+  if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
+  else                r := ARect^;
+  if (r.Left = r.Right) or (r.Top = r.Bottom) then Exit;
+  X := FMinX + (FMaxX - FMinX) * (px - r.Left) / (r.Right - r.Left);
+  Y := FMinY + (FMaxY - FMinY) * (r.Bottom - py) / (r.Bottom - r.Top);
 end;
 
 destructor TDataSheet.Destroy;
