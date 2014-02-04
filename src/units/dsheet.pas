@@ -35,10 +35,10 @@ type
     FMinX, FMaxX: Real;
     FMinY, FMaxY: Real;
     FCurX, FCurY: Integer;
-    function GetHeader(Index: Real): string;
-    function GetRow(Index: Real): Row;
+    function GetHeader(Index: Integer): string;
+    function GetRow(Index: Integer): Row;
     function GetRowCount: Integer;
-    procedure SetHeader(Index: Real; AValue: string);
+    procedure SetHeader(Index: Integer; AValue: string);
     procedure SetMagnifier(AValue: Integer);
     function CSSColor(spec: string): TColor;
     function CSSColor(spec: LongWord): TColor;
@@ -56,16 +56,16 @@ type
     property Anchor: Integer read FAnchor write FAnchor;
     property Magnifier: Integer read FMagnifier write SetMagnifier;
     property Span: Integer read FSpan;
-    property Data[Index: Real]: Row read GetRow; default;
+    property Data[Index: Integer]: Row read GetRow; default;
     property Cols: Integer read FCols;
-    property Headers[Index: Real]: string read GetHeader write SetHeader;
+    property Headers[Index: Integer]: string read GetHeader write SetHeader;
     property Rows: Integer read GetRowCount;
     constructor Create(ADefault: Double = 0);
     destructor Destroy; override;
     function Append: Row;
-    function Insert(Index: Real): Row;
+    function Insert(Index: Integer): Row;
     procedure Clear(Complete: Boolean = True);
-    procedure Delete(Index: Real);
+    procedure Delete(Index: Integer);
     procedure Load(fn: string);
     procedure Save(fn: string; fmt: string = '%e');
     function Export(fmt: string = '%0.4f'): TStringList;
@@ -119,7 +119,7 @@ begin
   SetLength(FData, 0);
 end;
 
-function TDataSheet.GetRow(Index: Real): Row;
+function TDataSheet.GetRow(Index: Integer): Row;
 begin
   Result := Row(FRows[round(Index)]);
 end;
@@ -129,25 +129,18 @@ begin
   Result := FRows.Count;
 end;
 
-function TDataSheet.GetHeader(Index: Real): string;
-var
-  i: Integer;
+function TDataSheet.GetHeader(Index: Integer): string;
 begin
-  i := round(Index);
-  if i < FHeaders.Count then
-    Result := FHeaders[i]
-  else
-    Result := '';
+  if Index < FHeaders.Count then Exit(FHeaders[Index]) else Exit('');
 end;
 
-procedure TDataSheet.SetHeader(Index: Real; AValue: string);
+procedure TDataSheet.SetHeader(Index: Integer; AValue: string);
 var
-  i, j, c: Integer;
+  j, c: Integer;
 begin
   c := FHeaders.Count;
-  i := round(Index);
-  if i >= c then for j := c to i do FHeaders.Add('');
-  FHeaders[i] := AValue;
+  if Index >= c then for j := c to Index do FHeaders.Add('');
+  FHeaders[Index] := AValue;
 end;
 
 function TDataSheet.CSSColor(spec: string): TColor;
@@ -516,24 +509,21 @@ begin
   FCurY := -1;
 end;
 
-function TDataSheet.Insert(Index: Real): Row;
+function TDataSheet.Insert(Index: Integer): Row;
 begin
   Result := Row.Create(Self, FDefault);
   try
-    FRows.Insert(round(Index), Result);
+    FRows.Insert(Index, Result);
   except
     Result.Free;
     raise;
   end;
 end;
 
-procedure TDataSheet.Delete(Index: Real);
-var
-  i: Integer;
+procedure TDataSheet.Delete(Index: Integer);
 begin
-  i := round(Index);
-  Row(FRows[i]).Free;
-  FRows.Delete(i);
+  Row(FRows[Index]).Free;
+  FRows.Delete(Index);
 end;
 
 procedure TDataSheet.Load(fn: string);
