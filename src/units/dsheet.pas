@@ -15,11 +15,11 @@ type
       FOwner: TDataSheet;
       FData: array of Double;
       FDefault: Double;
-      function GetData(Index: Real): Double;
-      procedure SetData(Index: Real; AValue: Double);
+      function GetData(Index: Integer): Double;
+      procedure SetData(Index: Integer; AValue: Double);
     public
       Header: string;
-      property Data[Index: Real]: Double read GetData write SetData; default;
+      property Data[Index: Integer]: Double read GetData write SetData; default;
       constructor Create(AOwner: TDataSheet; ADefault: Double);
       destructor Destroy; override;
     end;
@@ -76,26 +76,26 @@ type
       ARect: PRect = nil);
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: TJSONObject;
       ARect: PRect = nil);
-    procedure ShowCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect = nil);
+    procedure DrawCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect = nil);
   end;
 
 implementation
 uses sysutils, math, zstream, jsonparser;
 
-function TDataSheet.Row.GetData(Index: Real): Double;
+function TDataSheet.Row.GetData(Index: Integer): Double;
 var
   i : Integer;
 begin
   Result := FDefault;
-  i := round(Index) - 1; //Index from 1, but internally starting from 0
+  i := Index - 1; //Index from 1, but internally starting from 0
   if i in [0..Length(FData)-1] then Result := FData[i];
 end;
 
-procedure TDataSheet.Row.SetData(Index: Real; AValue: Double);
+procedure TDataSheet.Row.SetData(Index: Integer; AValue: Double);
 var
   i, j, c: Integer;
 begin
-  i := round(Index) - 1; //Index from 1, but internally starting from 0
+  i := Index - 1; //Index from 1, but internally starting from 0
   if i < 0 then Exit;
   c := Length(FData);
   if i >= c then begin
@@ -683,7 +683,7 @@ begin
   end;
 end;
 
-procedure TDataSheet.ShowCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect);
+procedure TDataSheet.DrawCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect);
 var
   r: TRect;
 begin

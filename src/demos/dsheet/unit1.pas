@@ -89,7 +89,7 @@ begin
   if Key = VK_ESCAPE then begin
     CrossHair := False;
     pb.Cursor := crDefault;
-    ds.ShowCursor(pb.Canvas, -1, -1);
+    ds.DrawCursor(pb.Canvas, -1, -1);
   end;
 end;
 
@@ -112,8 +112,8 @@ end;
 procedure TForm1.pbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 begin
   if CrossHair then begin
-    ds.ShowCursor(pb.Canvas, -1, -1);
-    ds.ShowCursor(pb.Canvas, X, Y);
+    ds.DrawCursor(pb.Canvas, -1, -1);
+    ds.DrawCursor(pb.Canvas, X, Y);
   end;
 end;
 
