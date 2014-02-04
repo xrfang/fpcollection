@@ -45,7 +45,6 @@ type
     function PenStyle(ps: string): TPenStyle;
     procedure Range(c: Integer; pannable: Boolean; var Min, Max: Real);
     function HMap(ARect: TRect; p: Integer): Integer;
-    function HMap(ARect: TRect; Min, Max, p: Real): Integer;
     function VMap(ARect: TRect; Min, Max, p: Real): Integer;
     procedure DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
     procedure DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
@@ -235,11 +234,6 @@ end;
 function TDataSheet.HMap(ARect: TRect; p: Integer): Integer;
 begin
   Result := ARect.Left + (2 * p + 1) * FMagnifier;
-end;
-
-function TDataSheet.HMap(ARect: TRect; Min, Max, p: Real): Integer;
-begin
-  with ARect do Exit(Left + round((Max - p) / (Max - Min) * (Right - Left)));
 end;
 
 function TDataSheet.VMap(ARect: TRect; Min, Max, p: Real): Integer;
