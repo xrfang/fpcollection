@@ -40,6 +40,7 @@ type
     function GetRowCount: Integer;
     procedure SetHeader(Index: Integer; AValue: string);
     procedure SetMagnifier(AValue: Integer);
+    function cut(var str: string): string;
     function CSSColor(spec: string): TColor;
     function CSSColor(spec: LongWord): TColor;
     function PenStyle(ps: string): TPenStyle;
@@ -147,22 +148,13 @@ begin
 end;
 
 function TDataSheet.CSSColor(spec: string): TColor;
-var
-  c: Integer;
-  r, g, b: Byte;
 begin
-  c := Length(spec);
-  if c = 7 then begin
-    spec := Copy(spec, 2, 6);
-    c := 6;
+  case Length(spec) of
+    7: spec[1] := '$';
+    6: spec := '$' + spec;
+    else Exit(clBlack);
   end;
-  if c = 6 then try
-    r := StrToInt('$' + Copy(spec, 1, 2));
-    g := StrToInt('$' + Copy(spec, 3, 2));
-    b := StrToInt('$' + Copy(spec, 5, 2));
-    Exit(RGBToColor(r, g, b));
-  except end;
-  Exit(clBlack);
+  Result := CSSColor(StrToIntDef(spec, 0));
 end;
 
 function TDataSheet.CSSColor(spec: LongWord): TColor;
@@ -177,6 +169,7 @@ end;
 
 function TDataSheet.PenStyle(ps: string): TPenStyle;
 begin
+  if ps[1] = '*' then ps := Copy(ps, 2, 3);
   if (ps = '-') or (ps = '=') then Exit(psSolid);
   if ps = '--' then Exit(psDash);
   if ps = '..' then Exit(psDot);
@@ -189,6 +182,20 @@ procedure TDataSheet.SetMagnifier(AValue: Integer);
 begin
   if (AValue <= 0) or (AValue > 50) or (FMagnifier = AValue) then Exit;
   FMagnifier := AValue;
+end;
+
+function TDataSheet.cut(var str: string): string;
+var
+  p: Integer;
+begin
+  p := Pos(',', str);
+  if p = 0 then begin
+    Result := str;
+    str := '';
+  end else begin
+    Result := Copy(str, 1, p - 1);
+    str := Copy(str, p + 1, Length(str));
+  end;
 end;
 
 procedure TDataSheet.Range(c: Integer; pannable: Boolean; var Min, Max: Real);
@@ -249,24 +256,12 @@ procedure TDataSheet.DrawBase(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject)
 var
   bcolor: TColor;
   bwidth: Integer;
-  bstyle: string;
-  jd: TJSONData;
+  clrs, bstyle: string;
 begin
-  FBGColor := clWhite;
-  bcolor := clBlack;
-  jd := opts.Find('color');
-  if jd <> nil then case jd.JSONType of
-    jtArray: begin
-      if jd.Count > 0 then FBGColor := CSSColor(jd.Items[0].AsString);
-      if jd.Count > 1 then bcolor := CSSColor(jd.Items[1].AsString)
-      else                 bcolor := FBGColor;
-    end;
-    jtString: begin
-      FBGColor := CSSColor(jd.AsString);
-      bcolor := FBGColor;
-    end;
-  end;
-  bstyle := opts.Get('border', '-');
+  clrs := opts.Get('color', '#FFFFFF,#000000');
+  FBGColor := CSSColor(cut(clrs));
+  bcolor := CSSColor(cut(clrs));
+  bstyle := opts.Get('style', '-');
   bwidth := ifthen(bstyle = '=', 2, 1);
   with ACanvas do begin
     Brush.Color := FBGColor;
@@ -282,22 +277,21 @@ end;
 
 procedure TDataSheet.DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
-  clr: TColor;
+  clr, clr_0, clr_1, clr_2: TColor;
   oc, hc, lc, cc, i, x: Integer;
   o, h, l, c: Integer;
-  color_0, color_1, color_2: TColor;
-  ja: TJSONArray;
+  s: string;
 begin
   if Cols < 4 then Exit;
-  color_0 := CSSColor(opts.Get('color_0', '#008000'));
-  color_1 := CSSColor(opts.Get('color_1', '#FF0000'));
-  color_2 := CSSColor(opts.Get('color_2', '#000000'));
-  oc := 1; hc := 2; lc := 3; cc := 4;
-  ja := opts.Find('data', jtArray) as TJSONArray;
-  if (ja <> nil) and (ja.Count = 4) then begin
-    oc := ja[0].AsInteger; hc := ja[1].AsInteger;
-    lc := ja[2].AsInteger; cc := ja[3].AsInteger;
-  end;
+  s := opts.Get('color', '#008000,#FF0000');
+  clr_0 := CSSColor(cut(s));
+  clr_1 := CSSColor(cut(s));
+  clr_2 := CSSColor(cut(s));
+  s := opts.Get('data', '1,2,3,4');
+  oc := StrToIntDef(cut(s), 1);
+  hc := StrToIntDef(cut(s), 2);
+  lc := StrToIntDef(cut(s), 3);
+  cc := StrToIntDef(cut(s), 4);;
   with ACanvas do begin
     Pen.Style := psSolid;
     Pen.Width := 1;
@@ -308,15 +302,15 @@ begin
       l := VMap(ARect, FMinY, FMaxY, Data[i][lc]);
       c := VMap(ARect, FMinY, FMaxY, Data[i][cc]);
       case Sign(Data[i][cc] - Data[i][oc]) of
-        1: clr := color_1;
-        -1: clr := color_0;
-        else clr := color_2;
+        1: clr := clr_1;
+        -1: clr := clr_0;
+        else clr := clr_2;
       end;
       Pen.Color := clr;
       MoveTo(x, h);
       LineTo(x, l);
       if FMagnifier >= 5 then begin
-        Brush.Color := ifthen(clr = color_1, FBGColor, clr);
+        Brush.Color := ifthen(clr = clr_1, FBGColor, clr);
         if o = c then begin
           MoveTo(x - FMagnifier div 2, o);
           LineTo(x + FMagnifier div 2, c);
@@ -333,13 +327,12 @@ var
   color: TColor;
   w, i, x, c, d: Integer;
   style: string;
-  node: Boolean;
   procedure DrawDataPoint(x, y: Integer);
   var
     r: Integer;
     ps: TPenStyle;
   begin
-    if not node then Exit;
+    if style[1] <> '*' then Exit;
     r := w + 2;
     if r > FMagnifier div 2 then r := FMagnifier div 2;
     with ACanvas do begin
@@ -353,10 +346,9 @@ var
   end;
 begin
   if Cols < 1 then Exit;
-  c := opts.Get('data', 1);
+  c := StrToIntDef(opts.Get('data', '1'), 1);
   color := CSSColor(opts.Get('color', '#000000'));
-  style := opts.Get('style', '-');
-  node := opts.Get('node', False);
+  style := opts.Get('style', '*-');
   w := ifthen(style = '=', 2, 1);
   if w > FMagnifier div 2 then w := FMagnifier div 2;
   with ACanvas do begin
@@ -379,38 +371,26 @@ end;
 procedure TDataSheet.DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
   clrs: array of TColor;
+  s: string;
   dp, ds, cc, cl, w, i, x, d1, d2: Integer;
-  jd: TJSONData;
 begin
   if Cols < 1 then Exit;
-  jd := opts.Find('data');
-  dp := 0; ds := 0;
-  if jd = nil then
-    dp := 1
-  else if jd.JSONType = jtNumber then
-    dp := jd.AsInteger
-  else if jd.JSONType = jtArray then begin
-    if jd.Count > 0 then dp := jd.Items[0].AsInteger;
-    if jd.Count > 1 then ds := jd.Items[1].AsInteger;
-  end;
+  s := opts.Get('data', '1');
+  dp := StrToIntDef(cut(s), 1);
+  ds := StrToIntDef(cut(s), 0);
   if (dp = 0) or (dp > Cols) then Exit;
   clrs := nil;
-  jd := opts.Find('colors');
-  if jd = nil then begin
-    SetLength(clrs, 1);
-    clrs[0] := clBlack;
-  end else if jd.JSONType = jtString then begin
-    SetLength(clrs, 1);
-    clrs[0] := CSSColor(jd.AsString);
-  end else if jd.JSONType = jtArray then begin
-    SetLength(clrs, jd.Count);
-    for i := 0 to jd.Count - 1 do clrs[i] := CSSColor(jd.Items[i].AsString);
-  end else if jd.JSONType = jtNumber then begin
-    cc := jd.AsInteger;
-  end else Exit;
-  w := opts.Get('width', FMagnifier) div 2;
-  if w > FMagnifier div 2 then w := FMagnifier div 2;
-  if w < 1 then w := 1;
+  s := opts.Get('colors', '');
+  cc := StrToIntDef(s, 0);
+  if cc = 0 then begin
+    s := opts.Get('color', '#000000');
+    while s <> '' do begin
+      cl := Length(clrs);
+      SetLength(clrs, cl + 1);
+      clrs[cl] := CSSColor(cut(s));
+    end;
+  end;
+  if opts.Get('style', '=') = '-' then w := 0 else w := FMagnifier div 2;
   cl := Length(clrs);
   with ACanvas do begin
     Pen.Style := psSolid;
@@ -436,10 +416,10 @@ end;
 
 procedure TDataSheet.DrawScat(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
-  ja: TJSONArray;
   x, y, xc, yc, fp, lp, w, i: Integer;
-  pannable: Boolean;
+  movable: Boolean;
   clr: TColor;
+  s: string;
   function XMap(p: Real): Integer;
   begin
     with ARect do
@@ -456,23 +436,22 @@ begin
   if FSpan <= 0 then Exit;
   if FAnchor < 0 then FAnchor += Rows;
   if FAnchor < FSpan then FAnchor := FSpan;
-  ja := opts.Find('data', jtArray) as TJSONArray;
-  xc := 1; yc := 2;
-  if ja <> nil then begin
-    if ja.Count > 0 then xc := ja[0].AsInteger;
-    if ja.Count > 1 then yc := ja[1].AsInteger;
-  end;
+  s := opts.Get('data', '1,2');
+  xc := StrToIntDef(cut(s), 1);
+  yc := StrToIntDef(cut(s), 2);
   if (xc < 1) or (xc > Cols) or (yc < 1) or (yc > Cols) then Exit;
   clr := CSSColor(opts.Get('color', '#000000'));
-  w := opts.Get('width', 2);
-  if w > FMagnifier div 2 then w := FMagnifier div 2;
-  if w < 1 then w := 1;
-  pannable := opts.Get('pannable', False);
+  case opts.Get('style', '*') of
+    '.': w := 1;
+    '*': w := 2;
+    else w := FMagnifier div 2;
+  end;
+  movable := StrToIntDef(opts.Get('fixed', '1'), 1) = 0;
   FMinX := 1e300; FMaxX := -1e300;
   FMinY := 1e300; FMaxY := -1e300;
-  Range(xc, pannable, FMinX, FMaxX);
-  Range(yc, pannable, FMinY, FMaxY);
-  if pannable then begin
+  Range(xc, movable, FMinX, FMaxX);
+  Range(yc, movable, FMinY, FMaxY);
+  if movable then begin
     fp := FAnchor - FSpan + 1;
     lp := FAnchor;
   end else begin

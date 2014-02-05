@@ -129,14 +129,13 @@ end;
 
 procedure TForm1.pbPaint(Sender: TObject);
 begin
-  ds.Visualize(pb.Canvas, ctBase,
-    '{"color": ["EEEEEE", "aaaaaa"], "border": "-.."}');
-  ds.Visualize(pb.Canvas, ctScat, '{"color": "#FF0000", "data": [1, 4], "pannable": false}');
+  ds.Visualize(pb.Canvas, ctBase, '{"color": "EEEEEE,aaaaaa", "style": "-.."}');
+  ds.Visualize(pb.Canvas, ctScat, '{"color": "#FF0000", "data": "1,4"}');
   if not ds.SyncView(pb.Canvas, [5]) then Exit;
-  ds.Visualize(pb.Canvas, ctBars, '{"data": 5, "colors": 6}');
+  ds.Visualize(pb.Canvas, ctBars, '{"data": "5", "colors": "6"}');
   if not ds.SyncView(pb.Canvas, [1, 2, 3, 4]) then Exit;
-  ds.Visualize(pb.Canvas, ctOHLC, '{"color_1": "#ff00ff"}');
-  ds.Visualize(pb.Canvas, ctLine, '{"data": 4, "color": "#0000FF", "style": "-", "node": true}');
+  ds.Visualize(pb.Canvas, ctOHLC, '{"color": "#0000ff,#ff00ff"}');
+  ds.Visualize(pb.Canvas, ctLine, '{"data": "4", "color": "#0000FF", "style": "*-"}');
 end;
 
 procedure TForm1.ReloadDatasheet;
