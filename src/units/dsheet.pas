@@ -169,7 +169,7 @@ end;
 
 function TDataSheet.PenStyle(ps: string): TPenStyle;
 begin
-  if ps[1] = '*' then ps := Copy(ps, 2, 3);
+  if (Length(ps) > 0) and (ps[1] = '*') then ps := Copy(ps, 2, 3);
   if (ps = '-') or (ps = '=') then Exit(psSolid);
   if ps = '--' then Exit(psDash);
   if ps = '..' then Exit(psDot);
