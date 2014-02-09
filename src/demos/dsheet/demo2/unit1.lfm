@@ -1,158 +1,396 @@
 object Form1: TForm1
-  Left = 604
-  Height = 300
-  Top = 252
-  Width = 397
-  ActiveControl = pc
-  Caption = 'Data Visualizer'
-  ClientHeight = 300
-  ClientWidth = 397
+  Left = 301
+  Height = 480
+  Top = 118
+  Width = 639
+  ActiveControl = tc
+  Caption = 'TDataSheet Charting'
+  ClientHeight = 480
+  ClientWidth = 639
   KeyPreview = True
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnKeyUp = FormKeyUp
+  OnKeyDown = FormKeyDown
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.0.14.0'
-  object pc: TPageControl
+  object tc: TTabControl
     Left = 0
-    Height = 300
+    Height = 480
     Top = 0
-    Width = 300
-    ActivePage = TabSheet1
-    Align = alClient
+    Width = 639
+    OnChange = tcChange
+    TabPosition = tpLeft
     TabIndex = 0
+    Tabs.Strings = (
+      'Base'
+      'OHLC'
+      'Line'
+      'Bar'
+      'Scatter'
+    )
+    Align = alClient
     TabOrder = 0
-    TabPosition = tpBottom
-    object TabSheet1: TTabSheet
-      Caption = 'Chart'
-      ClientHeight = 268
-      ClientWidth = 296
-      object pb: TPaintBox
-        Left = 0
-        Height = 268
-        Top = 0
-        Width = 296
-        Align = alClient
-        OnMouseDown = pbMouseDown
-        OnMouseMove = pbMouseMove
-        OnPaint = pbPaint
-      end
-    end
-    object TabSheet2: TTabSheet
-      Caption = 'Data'
-      ClientHeight = 268
-      ClientWidth = 296
-      object lv: TListView
-        Left = 0
-        Height = 268
-        Top = 0
-        Width = 305
-        Align = alClient
-        AutoSort = False
-        Columns = <>
-        GridLines = True
-        OwnerData = True
-        ReadOnly = True
-        RowSelect = True
-        ScrollBars = ssAutoBoth
-        TabOrder = 0
-        ViewStyle = vsReport
-        OnData = lvData
-      end
-    end
-    object TabSheet3: TTabSheet
-      Caption = 'Message'
-      ClientHeight = 268
-      ClientWidth = 296
-      object Memo1: TMemo
-        Left = 0
-        Height = 268
-        Top = 0
-        Width = 305
-        Align = alClient
-        TabOrder = 0
-      end
-    end
-  end
-  object Panel1: TPanel
-    Left = 300
-    Height = 300
-    Top = 0
-    Width = 97
-    Align = alRight
-    BevelOuter = bvNone
-    ClientHeight = 300
-    ClientWidth = 97
-    TabOrder = 1
-    object Button1: TButton
-      Left = 7
-      Height = 25
-      Top = 6
-      Width = 83
-      Caption = 'Import'
-      OnClick = Button1Click
-      TabOrder = 0
-    end
-    object Button2: TButton
-      Left = 7
-      Height = 25
-      Top = 35
-      Width = 83
-      Caption = 'Load'
-      OnClick = Button2Click
+    object pc: TPageControl
+      Left = 60
+      Height = 480
+      Top = 0
+      Width = 579
+      ActivePage = TabSheet1
+      Align = alClient
+      TabIndex = 0
       TabOrder = 1
-    end
-    object Panel2: TPanel
-      Left = 0
-      Height = 194
-      Top = 106
-      Width = 97
-      Align = alBottom
-      BevelInner = bvLowered
-      BevelOuter = bvNone
-      ClientHeight = 194
-      ClientWidth = 97
-      TabOrder = 2
-      object leScatX: TLabeledEdit
-        Left = 4
-        Height = 28
-        Top = 22
-        Width = 87
-        EditLabel.AnchorSideLeft.Control = leScatX
-        EditLabel.AnchorSideRight.Control = leScatX
-        EditLabel.AnchorSideRight.Side = asrBottom
-        EditLabel.AnchorSideBottom.Control = leScatX
-        EditLabel.Left = 4
-        EditLabel.Height = 19
-        EditLabel.Top = 0
-        EditLabel.Width = 87
-        EditLabel.Caption = 'Data.X'
-        EditLabel.ParentColor = False
-        ReadOnly = True
-        TabOrder = 0
+      TabPosition = tpBottom
+      object TabSheet1: TTabSheet
+        Caption = 'Chart'
+        ClientHeight = 448
+        ClientWidth = 575
+        object Panel1: TPanel
+          Left = 445
+          Height = 448
+          Top = 0
+          Width = 130
+          Align = alRight
+          BevelOuter = bvNone
+          Caption = 'Panel1'
+          ClientHeight = 448
+          ClientWidth = 130
+          TabOrder = 0
+          object pcopts: TPageControl
+            Left = 0
+            Height = 448
+            Top = 0
+            Width = 130
+            ActivePage = tsoScat
+            Align = alClient
+            ShowTabs = False
+            TabIndex = 4
+            TabOrder = 0
+            object tsoBase: TTabSheet
+              Caption = 'tsoBase'
+              ClientHeight = 444
+              ClientWidth = 126
+              object pnBGColor: TPanel
+                Left = 11
+                Height = 50
+                Top = 12
+                Width = 110
+                Anchors = [akTop, akLeft, akRight]
+                BevelInner = bvRaised
+                BevelOuter = bvLowered
+                BorderWidth = 1
+                BorderStyle = bsSingle
+                Caption = 'BG Color'
+                Color = clWhite
+                ParentColor = False
+                TabOrder = 0
+                OnClick = pnBGColorClick
+              end
+              object pnBorderColor: TPanel
+                Left = 11
+                Height = 50
+                Top = 76
+                Width = 110
+                Anchors = [akTop, akLeft, akRight]
+                BevelInner = bvRaised
+                BevelOuter = bvLowered
+                BorderWidth = 1
+                BorderStyle = bsSingle
+                Caption = 'Border Color'
+                Color = clBlack
+                Font.Color = clWhite
+                ParentColor = False
+                ParentFont = False
+                TabOrder = 1
+                OnClick = pnBGColorClick
+              end
+              object Label1: TLabel
+                Left = 11
+                Height = 19
+                Top = 140
+                Width = 81
+                Caption = 'Border Style'
+                ParentColor = False
+              end
+              object cbStyle: TComboBox
+                Left = 11
+                Height = 28
+                Top = 164
+                Width = 110
+                Anchors = [akTop, akLeft, akRight]
+                ItemHeight = 0
+                ItemIndex = 0
+                Items.Strings = (
+                  'solid'
+                  'dash'
+                  'dash-dot'
+                  'dash-dot-dot'
+                  'dot'
+                  'none'
+                )
+                OnChange = cbStyleChange
+                Style = csDropDownList
+                TabOrder = 2
+                Text = 'solid'
+              end
+            end
+            object tsoOHLC: TTabSheet
+              Caption = 'tsoOHLC'
+              ClientHeight = 444
+              ClientWidth = 126
+              object pnYinColor: TPanel
+                Left = 11
+                Height = 50
+                Top = 12
+                Width = 110
+                Anchors = [akTop, akLeft, akRight]
+                BevelInner = bvRaised
+                BevelOuter = bvLowered
+                BorderWidth = 1
+                BorderStyle = bsSingle
+                Caption = 'Yin Color'
+                Color = clGreen
+                Font.Color = clPurple
+                ParentColor = False
+                ParentFont = False
+                TabOrder = 0
+                OnClick = pnBGColorClick
+              end
+              object pnYangColor: TPanel
+                Left = 11
+                Height = 50
+                Top = 76
+                Width = 110
+                Anchors = [akTop, akLeft, akRight]
+                BevelInner = bvRaised
+                BevelOuter = bvLowered
+                BorderWidth = 1
+                BorderStyle = bsSingle
+                Caption = 'Yang Color'
+                Color = clRed
+                Font.Color = clAqua
+                ParentColor = False
+                ParentFont = False
+                TabOrder = 1
+                OnClick = pnBGColorClick
+              end
+              object pnPingColor: TPanel
+                Left = 11
+                Height = 50
+                Top = 140
+                Width = 110
+                Anchors = [akTop, akLeft, akRight]
+                BevelInner = bvRaised
+                BevelOuter = bvLowered
+                BorderWidth = 1
+                BorderStyle = bsSingle
+                Caption = 'Ping Color'
+                Color = clBlack
+                Font.Color = clWhite
+                ParentColor = False
+                ParentFont = False
+                TabOrder = 2
+                OnClick = pnBGColorClick
+              end
+            end
+            object tsoLine: TTabSheet
+              Caption = 'tsoLine'
+              ClientHeight = 444
+              ClientWidth = 126
+              object cbSplitAxis: TCheckBox
+                Left = 11
+                Height = 24
+                Top = 12
+                Width = 107
+                Caption = 'Independent'
+                OnChange = cbSplitAxisChange
+                TabOrder = 0
+              end
+            end
+            object tsoBars: TTabSheet
+              Caption = 'tsoBars'
+              ClientHeight = 444
+              ClientWidth = 126
+              object rgBarStyle: TRadioGroup
+                Left = 11
+                Height = 105
+                Top = 4
+                Width = 105
+                Anchors = [akTop, akLeft, akRight]
+                AutoFill = True
+                Caption = 'Style'
+                ChildSizing.LeftRightSpacing = 6
+                ChildSizing.TopBottomSpacing = 6
+                ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+                ChildSizing.EnlargeVertical = crsHomogenousChildResize
+                ChildSizing.ShrinkHorizontal = crsScaleChilds
+                ChildSizing.ShrinkVertical = crsScaleChilds
+                ChildSizing.Layout = cclLeftToRightThenTopToBottom
+                ChildSizing.ControlsPerLine = 1
+                ClientHeight = 85
+                ClientWidth = 101
+                ItemIndex = 1
+                Items.Strings = (
+                  'Thin'
+                  'Thick'
+                  'Stacked'
+                )
+                OnSelectionChanged = rgBarStyleSelectionChanged
+                TabOrder = 0
+              end
+            end
+            object tsoScat: TTabSheet
+              Caption = 'tsoScat'
+              ClientHeight = 444
+              ClientWidth = 126
+              object rgScatStyle: TRadioGroup
+                Left = 11
+                Height = 113
+                Top = 4
+                Width = 104
+                Anchors = [akTop, akLeft, akRight]
+                AutoFill = True
+                Caption = 'Style'
+                ChildSizing.LeftRightSpacing = 6
+                ChildSizing.TopBottomSpacing = 6
+                ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+                ChildSizing.EnlargeVertical = crsHomogenousChildResize
+                ChildSizing.ShrinkHorizontal = crsScaleChilds
+                ChildSizing.ShrinkVertical = crsScaleChilds
+                ChildSizing.Layout = cclLeftToRightThenTopToBottom
+                ChildSizing.ControlsPerLine = 1
+                ClientHeight = 93
+                ClientWidth = 100
+                ItemIndex = 1
+                Items.Strings = (
+                  'Tiny'
+                  'Medium'
+                  'Large'
+                )
+                OnSelectionChanged = rgScatStyleSelectionChanged
+                TabOrder = 0
+              end
+              object cbScatFull: TCheckBox
+                Left = 11
+                Height = 24
+                Top = 132
+                Width = 85
+                Caption = 'Full View'
+                OnChange = cbScatFullChange
+                TabOrder = 1
+              end
+            end
+          end
+        end
+        object Splitter1: TSplitter
+          Left = 440
+          Height = 448
+          Top = 0
+          Width = 5
+          Align = alRight
+          ResizeAnchor = akRight
+        end
+        object Panel2: TPanel
+          Left = 0
+          Height = 448
+          Top = 0
+          Width = 440
+          Align = alClient
+          BevelOuter = bvNone
+          ClientHeight = 448
+          ClientWidth = 440
+          TabOrder = 2
+          object Panel3: TPanel
+            Left = 0
+            Height = 20
+            Top = 0
+            Width = 440
+            Align = alTop
+            BevelOuter = bvNone
+            ClientHeight = 20
+            ClientWidth = 440
+            TabOrder = 0
+            object lbLegend: TLabel
+              Left = 0
+              Height = 20
+              Top = 0
+              Width = 440
+              Align = alClient
+              ParentColor = False
+            end
+          end
+          object pb: TPaintBox
+            Left = 0
+            Height = 415
+            Top = 20
+            Width = 440
+            Align = alClient
+            OnMouseDown = pbMouseDown
+            OnMouseMove = pbMouseMove
+            OnPaint = pbPaint
+          end
+          object sb: TScrollBar
+            Left = 0
+            Height = 13
+            Top = 435
+            Width = 440
+            Align = alBottom
+            PageSize = 0
+            Position = 100
+            TabOrder = 1
+            OnScroll = sbScroll
+          end
+        end
       end
-      object leScatY: TLabeledEdit
-        Left = 4
-        Height = 28
-        Top = 70
-        Width = 87
-        EditLabel.AnchorSideLeft.Control = leScatY
-        EditLabel.AnchorSideRight.Control = leScatY
-        EditLabel.AnchorSideRight.Side = asrBottom
-        EditLabel.AnchorSideBottom.Control = leScatY
-        EditLabel.Left = 4
-        EditLabel.Height = 19
-        EditLabel.Top = 48
-        EditLabel.Width = 87
-        EditLabel.Caption = 'Data.Y'
-        EditLabel.ParentColor = False
-        ReadOnly = True
-        TabOrder = 1
+      object TabSheet2: TTabSheet
+        Caption = 'Data'
+        ClientHeight = 448
+        ClientWidth = 575
+        object lv: TListView
+          Left = 0
+          Height = 448
+          Top = 0
+          Width = 576
+          Align = alClient
+          BorderStyle = bsNone
+          Columns = <>
+          GridLines = True
+          OwnerData = True
+          ReadOnly = True
+          RowSelect = True
+          ScrollBars = ssAutoBoth
+          TabOrder = 0
+          ViewStyle = vsReport
+          OnData = lvData
+        end
       end
     end
   end
-  object od: TOpenDialog
-    left = 152
-    top = 56
+  object cd: TColorDialog
+    Color = clBlack
+    CustomColors.Strings = (
+      'ColorA=000000'
+      'ColorB=000080'
+      'ColorC=008000'
+      'ColorD=008080'
+      'ColorE=800000'
+      'ColorF=800080'
+      'ColorG=808000'
+      'ColorH=808080'
+      'ColorI=C0C0C0'
+      'ColorJ=0000FF'
+      'ColorK=00FF00'
+      'ColorL=00FFFF'
+      'ColorM=FF0000'
+      'ColorN=FF00FF'
+      'ColorO=FFFF00'
+      'ColorP=FFFFFF'
+      'ColorQ=C0DCC0'
+      'ColorR=F0CAA6'
+      'ColorS=F0FBFF'
+      'ColorT=A4A0A0'
+    )
+    left = 217
+    top = 122
   end
 end

@@ -49,7 +49,7 @@
         <UnitName Value="Unit1"/>
       </Unit1>
       <Unit2>
-        <Filename Value="../../units/dsheet.pas"/>
+        <Filename Value="../../../units/dsheet.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dsheet"/>
       </Unit2>
