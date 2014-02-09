@@ -680,12 +680,16 @@ end;
 procedure TDataSheet.MapS(ACanvas: TCanvas; px, py: Integer; out X: Integer;
   out Y: Real; ARect: Pointer);
 var
+  first : Integer;
   r: TRect;
 begin
+  X := -1;
   if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
   else                r := TRect(ARect^);
   if (r.Left = r.Right) or (r.Top = r.Bottom) then Exit;
-  X := trunc((px - r.Left) / FMagnifier / 2) + FAnchor - FSpan + 1;
+  first := FAnchor - FSpan + 1;
+  if first < 0 then first := 0;
+  X := trunc((px - r.Left) / FMagnifier / 2) + first;
   if X >= Rows then X := -1;
   Y := FMinY + (FMaxY - FMinY) * (r.Bottom - py) / (r.Bottom - r.Top);
 end;
