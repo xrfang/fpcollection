@@ -386,16 +386,15 @@ begin
   ds := StrToIntDef(cut(s), 0);
   if (dp = 0) or (dp > Cols) then Exit;
   clrs := nil;
-  s := opts.Get('colors', '');
-  cc := StrToIntDef(s, 0);
-  if cc = 0 then begin
-    s := opts.Get('color', '#000000');
-    while s <> '' do begin
-      cl := Length(clrs);
-      SetLength(clrs, cl + 1);
-      clrs[cl] := CSSColor(cut(s));
-    end;
-  end;
+  s := opts.Get('color', '#000000');
+  if (Length(s) > 0) and (s[1] = '@') then begin
+    cc := StrToIntDef(Copy(s, 2, Length(s)), 0);
+  end else cc := 0;
+  if cc = 0 then repeat
+    cl := Length(clrs);
+    SetLength(clrs, cl + 1);
+    clrs[cl] := CSSColor(cut(s));
+  until s = '';
   if opts.Get('style', '=') = '-' then w := 0 else w := FMagnifier div 2;
   cl := Length(clrs);
   first := FAnchor - FSpan + 1;
