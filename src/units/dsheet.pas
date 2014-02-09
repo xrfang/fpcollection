@@ -211,6 +211,7 @@ begin
     sp := 0;
   end;
   for i := ap downto sp do begin
+    if i < 0 then Break;
     v := Data[i][c];
     if v > Max then Max := v;
     if v < Min then Min := v;
@@ -226,6 +227,7 @@ begin
   if FSpan <= 0 then Exit(False);
   if FAnchor < 0 then FAnchor += Rows;
   if FAnchor < FSpan then FAnchor := FSpan;
+  if FAnchor >= Rows then FAnchor := Rows - 1;
   FMinY := 1e300; FMaxY := -1e300;
   for s := 0 to Length(series) - 1 do begin
     if series[s] > Cols then Exit(False);
@@ -278,7 +280,7 @@ end;
 procedure TDataSheet.DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
   clr, clr_0, clr_1, clr_2: TColor;
-  oc, hc, lc, cc, i, x: Integer;
+  oc, hc, lc, cc, i, x, first: Integer;
   o, h, l, c: Integer;
   s: string;
 begin
@@ -292,11 +294,13 @@ begin
   hc := StrToIntDef(cut(s), 2);
   lc := StrToIntDef(cut(s), 3);
   cc := StrToIntDef(cut(s), 4);;
+  first := FAnchor - FSpan + 1;
+  if first < 0 then first := 0;
   with ACanvas do begin
     Pen.Style := psSolid;
     Pen.Width := 1;
-    for i := FAnchor - FSpan + 1 to FAnchor do begin
-      x := HMap(ARect, i - FAnchor + FSpan - 1);
+    for i := first to FAnchor do begin
+      x := HMap(ARect, i - first);
       o := VMap(ARect, FMinY, FMaxY, Data[i][oc]);
       h := VMap(ARect, FMinY, FMaxY, Data[i][hc]);
       l := VMap(ARect, FMinY, FMaxY, Data[i][lc]);
@@ -325,7 +329,7 @@ end;
 procedure TDataSheet.DrawLine(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
   color: TColor;
-  w, i, x, c, d: Integer;
+  w, i, x, c, d, first: Integer;
   style: string;
   procedure DrawDataPoint(x, y: Integer);
   var
@@ -351,16 +355,18 @@ begin
   style := opts.Get('style', '*-');
   w := ifthen(style = '=', 2, 1);
   if w > FMagnifier div 2 then w := FMagnifier div 2;
+  first := FAnchor - FSpan + 1;
+  if first < 0 then first := 0;
   with ACanvas do begin
     Pen.Style := PenStyle(style);
     Pen.Color := color;
     Pen.Width := w;
     x := HMap(ARect, 0);
-    d := VMap(ARect, FMinY, FMaxY, Data[FAnchor - FSpan + 1][c]);
+    d := VMap(ARect, FMinY, FMaxY, Data[first][c]);
     MoveTo(x, d);
     DrawDataPoint(x, d);
-    for i := FAnchor - FSpan + 1 to FAnchor do begin
-      x := HMap(ARect, i - FAnchor + FSpan - 1);
+    for i := first to FAnchor do begin
+      x := HMap(ARect, i - first);
       d := VMap(ARect, FMinY, FMaxY, Data[i][c]);
       LineTo(x, d);
       DrawDataPoint(x, d);
@@ -372,7 +378,7 @@ procedure TDataSheet.DrawBars(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject)
 var
   clrs: array of TColor;
   s: string;
-  dp, ds, cc, cl, w, i, x, d1, d2: Integer;
+  dp, ds, cc, cl, w, i, x, d1, d2, first: Integer;
 begin
   if Cols < 1 then Exit;
   s := opts.Get('data', '1');
@@ -392,13 +398,15 @@ begin
   end;
   if opts.Get('style', '=') = '-' then w := 0 else w := FMagnifier div 2;
   cl := Length(clrs);
+  first := FAnchor - FSpan + 1;
+  if first < 0 then first := 0;
   with ACanvas do begin
     Pen.Style := psSolid;
     Pen.Width := 1;
     Pen.Color := clMaroon;
     Brush.Color := clMaroon;
-    for i := FAnchor - FSpan + 1 to FAnchor do begin
-      x := HMap(ARect, i - FAnchor + FSpan - 1);
+    for i := first to FAnchor do begin
+      x := HMap(ARect, i - first);
       d1 := VMap(ARect, FMinY, FMaxY, Data[i][dp]);
       if ds > 0 then d2 := VMap(ARect, FMinY, FMaxY, Data[i][ds])
       else           d2 := VMap(ARect, FMinY, FMaxY, 0);
@@ -436,6 +444,7 @@ begin
   if FSpan <= 0 then Exit;
   if FAnchor < 0 then FAnchor += Rows;
   if FAnchor < FSpan then FAnchor := FSpan;
+  if FAnchor >= Rows then FAnchor := Rows - 1;
   s := opts.Get('data', '1,2');
   xc := StrToIntDef(cut(s), 1);
   yc := StrToIntDef(cut(s), 2);
@@ -458,6 +467,7 @@ begin
     fp := 0;
     lp := Rows - 1;
   end;
+  if fp < 0 then fp := 0;
   with ACanvas do begin
     Pen.Style := psSolid;
     Pen.Width := 1;
