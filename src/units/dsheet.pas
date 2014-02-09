@@ -451,10 +451,10 @@ begin
   clr := CSSColor(opts.Get('color', '#000000'));
   case opts.Get('style', '*') of
     '.': w := 1;
-    '@': w := FMagnifier div 2;
+    '@': w := 3;
     else w := 2;
   end;
-  movable := StrToIntDef(opts.Get('fixed', '1'), 1) = 0;
+  movable := StrToIntDef(opts.Get('full', '1'), 1) = 0;
   FMinX := 1e300; FMaxX := -1e300;
   FMinY := 1e300; FMaxY := -1e300;
   Range(xc, movable, FMinX, FMaxX);
