@@ -204,7 +204,7 @@ var
 begin
   if pannable then begin
     ap := FAnchor;
-    sp := FAnchor - FSpan;
+    sp := FAnchor - FSpan + 1;
   end else begin
     ap := Rows - 1;
     sp := 0;
