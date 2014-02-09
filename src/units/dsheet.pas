@@ -5,7 +5,6 @@ interface
 uses
   Classes, Graphics, fpjson;
 type
-  PRect = ^TRect;
   TDataSheet = class
   type
     ChartType = (ctBase, ctOHLC, ctLine, ctBars, ctScat);
@@ -73,14 +72,14 @@ type
     function SyncView(ACanvas: TCanvas; series: array of Integer): Boolean;
     function SyncView(ARect: TRect; series: array of Integer): Boolean;
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: string = '';
-      ARect: PRect = nil);
+      ARect: Pointer = nil);
     procedure Visualize(ACanvas: TCanvas; AType: ChartType; opts: TJSONObject;
-      ARect: PRect = nil);
-    procedure DrawCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect = nil);
+      ARect: Pointer = nil);
+    procedure DrawCursor(ACanvas: TCanvas; X, Y: Integer; ARect: Pointer = nil);
     procedure MapS(ACanvas: TCanvas; px, py: Integer; out X: Integer;
-      out Y: Real; ARect: PRect = nil);
+      out Y: Real; ARect: Pointer = nil);
     procedure MapXY(ACanvas: TCanvas; px, py: Integer; out X, Y: Real;
-      ARect: PRect = nil);
+      ARect: Pointer = nil);
   end;
 
 implementation
@@ -629,7 +628,7 @@ begin
 end;
 
 procedure TDataSheet.Visualize(ACanvas: TCanvas; AType: ChartType;
-  opts: string; ARect: PRect);
+  opts: string; ARect: Pointer);
 var
   jo: TJSONObject;
 begin
@@ -644,12 +643,12 @@ begin
 end;
 
 procedure TDataSheet.Visualize(ACanvas: TCanvas; AType: ChartType;
-  opts: TJSONObject; ARect: PRect);
+  opts: TJSONObject; ARect: Pointer);
 var
   r: TRect;
 begin
   if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
-  else                r := ARect^;
+  else                r := TRect(ARect^);
   case AType of
     ctBase: DrawBase(ACanvas, r, opts);
     ctOHLC: DrawOHLC(ACanvas, r, opts);
@@ -659,12 +658,12 @@ begin
   end;
 end;
 
-procedure TDataSheet.DrawCursor(ACanvas: TCanvas; X, Y: Integer; ARect: PRect);
+procedure TDataSheet.DrawCursor(ACanvas: TCanvas; X, Y: Integer; ARect: Pointer);
 var
   r: TRect;
 begin
   if ARect = nil then r := Rect(0, 0, ACanvas.Width, ACanvas.Height)
-  else                r := ARect^;
+  else                r := TRect(ARect^);
   with ACanvas do begin
     Pen.Width := 1;
     Pen.Style := psSolid;
@@ -679,12 +678,12 @@ begin
 end;
 
 procedure TDataSheet.MapS(ACanvas: TCanvas; px, py: Integer; out X: Integer;
-  out Y: Real; ARect: PRect);
+  out Y: Real; ARect: Pointer);
 var
   r: TRect;
 begin
   if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
-  else                r := ARect^;
+  else                r := TRect(ARect^);
   if (r.Left = r.Right) or (r.Top = r.Bottom) then Exit;
   X := trunc((px - r.Left) / FMagnifier / 2) + FAnchor - FSpan + 1;
   if X >= Rows then X := -1;
@@ -692,12 +691,12 @@ begin
 end;
 
 procedure TDataSheet.MapXY(ACanvas: TCanvas; px, py: Integer; out X, Y: Real;
-  ARect: PRect);
+  ARect: Pointer);
 var
   r: TRect;
 begin
   if ARect = nil then r := Rect(0, 0, ACanvas.Width - 1, ACanvas.Height - 1)
-  else                r := ARect^;
+  else                r := TRect(ARect^);
   if (r.Left = r.Right) or (r.Top = r.Bottom) then Exit;
   X := FMinX + (FMaxX - FMinX) * (px - r.Left) / (r.Right - r.Left);
   Y := FMinY + (FMaxY - FMinY) * (r.Bottom - py) / (r.Bottom - r.Top);
