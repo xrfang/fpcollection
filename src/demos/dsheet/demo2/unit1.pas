@@ -28,6 +28,7 @@ type
     pnYinColor: TPanel;
     pnBorderColor: TPanel;
     pnYangColor: TPanel;
+    rgOHLCStyle: TRadioGroup;
     rgScatStyle: TRadioGroup;
     rgBarStyle: TRadioGroup;
     sb: TScrollBar;
@@ -54,6 +55,7 @@ type
     procedure pbPaint(Sender: TObject);
     procedure pnBGColorClick(Sender: TObject);
     procedure rgBarStyleSelectionChanged(Sender: TObject);
+    procedure rgOHLCStyleSelectionChanged(Sender: TObject);
     procedure rgScatStyleSelectionChanged(Sender: TObject);
     procedure sbScroll(Sender: TObject; ScrollCode: TScrollCode;
       var ScrollPos: Integer);
@@ -210,6 +212,11 @@ begin
   ds.Visualize(pb.Canvas, ctBase, opts_base, @r);
   case tc.TabIndex of
     1: begin
+      case rgOHLCStyle.ItemIndex of
+        0: opts_ohlc.Add('style', '-');
+        1: opts_ohlc.Add('style', '+');
+        2: opts_ohlc.Add('style', '#');
+      end;
       ds.SyncView(r, [1, 2, 3, 4]);
       ds.Visualize(pb.Canvas, ctOHLC, opts_ohlc, @r);
     end;
@@ -230,10 +237,11 @@ begin
       ds.SyncView(r, [1,2]);
       case rgBarStyle.ItemIndex of
         0: opts_bars.Add('style', '-');
-        1: opts_bars.Add('style', '=');
-        2: opts_bars.Add('style', '=');
+        1: opts_bars.Add('style', '+');
+        2: opts_bars.Add('style', '#');
+        3: opts_bars.Add('style', '+');
       end;
-      if rgBarStyle.ItemIndex > 1 then begin
+      if rgBarStyle.ItemIndex = 3 then begin
         opts_bars.Add('color', '#FF0000');
         opts_bars.Add('data', '1');
         ds.Visualize(pb.Canvas, ctBars, opts_bars, @r);
@@ -275,6 +283,12 @@ begin
   pb.Invalidate;
 end;
 
+procedure TForm1.rgOHLCStyleSelectionChanged(Sender: TObject);
+begin
+  Panel2.SetFocus;
+  pb.Invalidate;
+end;
+
 procedure TForm1.rgScatStyleSelectionChanged(Sender: TObject);
 begin
   Panel2.SetFocus;
@@ -291,7 +305,6 @@ end;
 procedure TForm1.tcChange(Sender: TObject);
 begin
   pcopts.ActivePageIndex := tc.TabIndex;
-  Application.ProcessMessages;
   case tc.TabIndex of
     1: LoadOHLCData;
     2: LoadLineData;

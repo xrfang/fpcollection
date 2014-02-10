@@ -279,7 +279,7 @@ end;
 procedure TDataSheet.DrawOHLC(ACanvas: TCanvas; ARect: TRect; opts: TJSONObject);
 var
   clr, clr_0, clr_1, clr_2: TColor;
-  oc, hc, lc, cc, i, x, first: Integer;
+  oc, hc, lc, cc, i, x, w, first: Integer;
   o, h, l, c: Integer;
   s: string;
 begin
@@ -292,7 +292,10 @@ begin
   oc := StrToIntDef(cut(s), 1);
   hc := StrToIntDef(cut(s), 2);
   lc := StrToIntDef(cut(s), 3);
-  cc := StrToIntDef(cut(s), 4);;
+  cc := StrToIntDef(cut(s), 4);
+  s := opts.Get('style', '+');
+  if s = '+' then w := FMagnifier div 2
+  else            w := FMagnifier - 1;
   first := FAnchor - FSpan + 1;
   if first < 0 then first := 0;
   with ACanvas do begin
@@ -312,14 +315,17 @@ begin
       Pen.Color := clr;
       MoveTo(x, h);
       LineTo(x, l);
-      if FMagnifier >= 5 then begin
+      if FMagnifier >= 3 then begin
         Brush.Color := ifthen(clr = clr_1, FBGColor, clr);
         if o = c then begin
-          MoveTo(x - FMagnifier div 2, o);
-          LineTo(x + FMagnifier div 2, c);
-        end else begin
-          Rectangle(x - FMagnifier div 2, o, x + FMagnifier div 2, c);
-        end;
+          MoveTo(x - w, o);
+          LineTo(x + w, c);
+        end else if s = '-' then begin
+          MoveTo(x - w, o);
+          LineTo(x, o);
+          MoveTo(x, c);
+          LineTo(x + w, c);
+        end else Rectangle(x - w, o, x + w, c);
       end;
     end;
   end;
@@ -394,7 +400,10 @@ begin
     SetLength(clrs, cl + 1);
     clrs[cl] := CSSColor(cut(s));
   until s = '';
-  if opts.Get('style', '=') = '-' then w := 0 else w := FMagnifier div 2;
+  s := opts.Get('style', '+');
+  if      s = '-' then w := 0
+  else if s = '#' then w := FMagnifier - 1
+  else                 w := FMagnifier div 2;
   cl := Length(clrs);
   first := FAnchor - FSpan + 1;
   if first < 0 then first := 0;
