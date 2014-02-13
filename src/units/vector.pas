@@ -59,6 +59,7 @@ var
   i, gap, order, first, last, pos: Integer;
   Temp: T;
 begin
+  if FCount < 2 then Exit;
   if soReversed in Options then order := 1 else order := -1;
   //comb sort for large gaps
   gap := FCount;
