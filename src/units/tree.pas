@@ -17,6 +17,7 @@ type
     function RLEncode(Value: QWord; Output: TStream): Integer;
     function RLDecode(Input: TStream; out Value: QWord): Integer;
     procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
+    function DoCompare(Source, Target: TSelfType): Integer; virtual;
     function DoPersist(out Ptr: Pointer): Integer; virtual;
     procedure DoRestore(Ptr: Pointer; Size: QWord); virtual;
   public
@@ -28,6 +29,7 @@ type
     function Children: Cardinal;
     procedure Clear;
     function Clone: TTree;
+    function Compare(ATree: TTree): Integer;
     function Descendants: Cardinal;
     function FirstChild: TTree;
     function FirstDescendant: TTree;
@@ -148,6 +150,19 @@ begin
     nsrc := nsrc.NextSibling;
   end;
   DoClone(Self, Result);
+end;
+
+function TTree.Compare(ATree: TTree): Integer;
+var
+  i: Integer;
+begin
+  if ATree = nil then Exit(1);
+  Result := DoCompare(Self, ATree);
+  if Result = 0 then for i := 1 to Children do begin
+    Result := Child[i].Compare(ATree.Child[i]);
+    if Result <> 0 then Exit;
+  end;
+  if (Result = 0) and (ATree.Children > Children) then Exit(-1);
 end;
 
 function TTree.Descendants: Cardinal;
@@ -299,6 +314,13 @@ end;
 procedure TTree.DoClone(Source: TSelfType; var Target: TSelfType);
 begin
   (* empty *)
+end;
+
+function TTree.DoCompare(Source, Target: TSelfType): Integer;
+begin
+  if Source.Data = Target.Data then Exit(0);
+  if Source.Data < Target.Data then Exit(-1);
+  Result := 1;
 end;
 
 function TTree.DoPersist(out Ptr: Pointer): Integer;
