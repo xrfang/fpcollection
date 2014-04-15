@@ -35,6 +35,8 @@ type
     procedure Trim(ACount: Integer; Disp: TDisposer = nil);
     procedure Sort(Options: SortOptions = []);
   end;
+  TPointerStack = specialize TVector<Pointer>;
+  TIntVector = specialize TVector<Integer>;
 
 implementation
 function TVector.GetItem(Index: Integer): T;
