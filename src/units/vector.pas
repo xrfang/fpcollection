@@ -16,12 +16,14 @@ type
     FCount: Integer;
     FData: DataType;
     FDefault: T;
+    FDisp: TDisposer;
     function GetItem(Index: Integer): T;
     procedure SetItem(Index: Integer; AValue: T);
     procedure AdjustCapacity;
   protected
     function OnSort(v1, v2: T): Integer; virtual;
   public
+    property Disposer: TDisposer read FDisp write FDisp;
     property Capacity: Cardinal read FCapacity;
     property Count: Integer read FCount;
     property Item[Index: Integer]: T read GetItem write SetItem; default;
@@ -31,8 +33,8 @@ type
     destructor Destroy; override;
     procedure Push(AValue: T);
     function Pop: T;
-    procedure Clear(Disp: TDisposer = nil);
-    procedure Trim(ACount: Integer; Disp: TDisposer = nil);
+    procedure Clear;
+    procedure Trim(ACount: Integer);
     procedure Sort(Options: SortOptions = []);
   end;
   TPointerStack = specialize TVector<Pointer>;
@@ -44,13 +46,14 @@ begin
   if Index < FCount then Result := FData[Index] else Result := FDefault;
 end;
 
-procedure TVector.Trim(ACount: Integer; Disp: TDisposer);
+procedure TVector.Trim(ACount: Integer);
 var
   i: Integer;
 begin
   if ACount <= 0 then Exit;
-  if ACount >= FCount then Clear(Disp) else begin
-    if Disp <> nil then for i := FCount - ACount to FCount - 1 do Disp(FData[i]);
+  if ACount >= FCount then Clear else begin
+    if FDisp <> nil then
+      for i := FCount - ACount to FCount - 1 do FDisp(FData[i]);
     FCount := FCount - ACount;
     AdjustCapacity;
   end;
@@ -153,13 +156,14 @@ end;
 
 constructor TVector.Create(ADefault: T);
 begin
+  FDisp := nil;
   FDefault := ADefault;
   Clear;
 end;
 
 destructor TVector.Destroy;
 begin
-  FData := nil;
+  Clear;
 end;
 
 procedure TVector.Push(AValue: T);
@@ -176,11 +180,11 @@ begin
   end else Result := FDefault;
 end;
 
-procedure TVector.Clear(Disp: TDisposer);
+procedure TVector.Clear;
 var
   i: Integer;
 begin
-  if Disp <> nil then for i := 0 to FCount - 1 do Disp(FData[i]);
+  if FDisp <> nil then for i := 0 to FCount - 1 do FDisp(FData[i]);
   FCount := 0;
   FCapacity := 0;
   FData := nil;

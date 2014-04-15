@@ -19,6 +19,7 @@ end;
 
 begin
   st := TIntStack.Create(0);
+  st.Disposer := @st.Discard;
   for i := 1 to 100 do begin
     st.Push(i);
     WriteLn('Pushed: ', i, ', count=', st.Count, ', cap=', st.Capacity);
@@ -32,12 +33,12 @@ begin
   WriteLn('Populate vector with 10 items...');
   for i := 1 to 10 do st.Push(i);
   WriteLn('Trim vector to 5 elements...');
-  st.Trim(5, @st.Discard);
+  st.Trim(5);
   Write('Remaining: ');
   for i := 0 to st.Count - 1 do Write(st[i], '  ');
   WriteLn;
   WriteLn('Clear vector...');
-  st.Clear(@st.Discard);
+  st.Clear;
   st.Free;
 end.
 
