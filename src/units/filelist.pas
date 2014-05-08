@@ -20,6 +20,8 @@ type
     property Mask: String read FMask write FMask;
     property Root: String read FRoot write FRoot;
     procedure Update;
+    class function List(ADir: string; Recurse: Boolean=False; AMask: string='*';
+      ATypes: TFileAttrSet = [ftReadOnly, ftArchive, ftNormal]): TFileList;
   end;
 
 implementation
@@ -91,6 +93,17 @@ begin
   end;
   ml.Free;
   FMask := OrgMask;
+end;
+
+class function TFileList.List(ADir: string; Recurse: Boolean; AMask: string;
+  ATypes: TFileAttrSet): TFileList;
+begin
+  Result := TFileList.Create;
+  Result.Root := ADir;
+  Result.Recursive := Recurse;
+  Result.Mask := AMask;
+  Result.Types := ATypes;
+  Result.Update;
 end;
 
 end.
