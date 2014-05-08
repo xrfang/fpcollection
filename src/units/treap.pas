@@ -54,7 +54,7 @@ type
     function ValueOf(Key: TKey; ADefault: TValue): TValue;
     procedure Import(src: TTreap; Clean: Boolean = True);
     procedure Clear;
-    constructor Create; virtual;
+    constructor Create;
     destructor Destroy; override;
   end;
 
