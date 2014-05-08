@@ -14,14 +14,14 @@ type
     FTypes : TFileAttrSet;
     procedure GetFileNames(Dir: String);
   public
-    constructor Create;
     property Recursive: Boolean read FRecursive write FRecursive;
     property Types: TFileAttrSet read FTypes write FTypes;
     property Mask: String read FMask write FMask;
     property Root: String read FRoot write FRoot;
+    constructor Create;
+    constructor Create(ADir: string; Recurse: Boolean=False; AMask: string='*';
+      ATypes: TFileAttrSet = [ftReadOnly, ftArchive, ftNormal]);
     procedure Update;
-    class function List(ADir: string; Recurse: Boolean=False; AMask: string='*';
-      ATypes: TFileAttrSet = [ftReadOnly, ftArchive, ftNormal]): TFileList;
   end;
 
 implementation
@@ -95,15 +95,14 @@ begin
   FMask := OrgMask;
 end;
 
-class function TFileList.List(ADir: string; Recurse: Boolean; AMask: string;
-  ATypes: TFileAttrSet): TFileList;
+constructor TFileList.Create(ADir: string; Recurse: Boolean; AMask: string;
+  ATypes: TFileAttrSet);
 begin
-  Result := TFileList.Create;
-  Result.Root := ADir;
-  Result.Recursive := Recurse;
-  Result.Mask := AMask;
-  Result.Types := ATypes;
-  Result.Update;
+  Root := ADir;
+  Recursive := Recurse;
+  Mask := AMask;
+  Types := ATypes;
+  Update;
 end;
 
 end.
