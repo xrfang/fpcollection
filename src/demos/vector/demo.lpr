@@ -1,10 +1,7 @@
 program demo;
 {$mode objfpc}{$H+}
 uses sysutils, vector;
-type
-  TIntVector = specialize TVector<Integer>;
-
-procedure Dump(v: TIntVector);
+procedure Dump(v: TIntegerVector);
 var
   i: Integer;
 begin
@@ -14,19 +11,20 @@ begin
 end;
 
 var
-  iv : TIntVector;
+  iv : TIntegerVector;
   i : Integer;
-  r: TIntVector.DataType;
+  r: array of Integer;
 begin
-  iv := TIntVector.Create(-1);
+  iv := TIntegerVector.Create(-1);
+  iv.Sort;
   for i := 10 to 20 do iv[i] := i + 1;
   iv.Push(123);
   Dump(iv);
-  WriteLn('Trim 1 element...');
-  iv.Trim(1);
+  WriteLn('Trim 1 element from head...');
+  iv.First := iv.First + 1;
   Dump(iv);
-  WriteLn('Trim 10 elements...');
-  iv.Trim(10);
+  WriteLn('Trim 10 elements from tail...');
+  iv.Last := iv.Last - 10;
   Dump(iv);
   r := iv.Raw;
   WriteLn('Raw content of iv:');
@@ -41,8 +39,8 @@ begin
   WriteLn('Sort iv...');
   iv.Sort;
   Dump(iv);
-  WriteLn('Sort iv reversed, eliminating NA values...');
-  iv.Sort([soReversed, soEliminateNA]);
+  WriteLn('Sort iv reversed...');
+  iv.Sort(True);
   Dump(iv);
   iv.Free;
   WriteLn('r is still accessible after iv is Destroyed, its content is unchanged:');

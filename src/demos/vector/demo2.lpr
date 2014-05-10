@@ -1,17 +1,15 @@
 program demo2;
 {$mode objfpc}{$H+}{$ASSERTIONS on}
 uses sysutils, vector;
-type
-  TIntVector = specialize TVector<Integer>;
 
 var
   i, c, v, len: Integer;
-  iv: TIntVector;
+  iv: TIntegerVector;
   rn: string;
   p: PChar;
 begin
   Randomize;
-  iv := TIntVector.Create(-1);
+  iv := TIntegerVector.Create(-1);
   if ParamCount <> 1 then begin
     p := strrscan(PChar(ParamStr(0)), DirectorySeparator);
     if p <> nil then rn := p + 1 else rn := ParamStr(0);
