@@ -30,12 +30,12 @@ type
     constructor Create(ADefault: T; AName: string = '');
     destructor Destroy; override;
     function Pop: T;
-    function Unshift: T;
+    function Shift: T;
     procedure Assign(Values: DataType; Head: Integer = 0; Tail: Integer = -1);
     procedure Clear;
     procedure Push(AValue: T);
-    procedure Shift(AValue: T);
     procedure Trim;
+    procedure Unshift(AValue: T);
   end;
   generic TSortableVector<T> = class(specialize TVector<T>)
   type
@@ -226,17 +226,17 @@ begin
   end else Result := FDefault;
 end;
 
-procedure TVector.Shift(AValue: T);
-begin
-  Item[-1] := AValue;
-end;
-
-function TVector.Unshift: T;
+function TVector.Shift: T;
 begin
   if FFirst <= FLast then begin
     Result := FData[FFirst];
     Inc(FFirst);
   end else Result := FDefault;
+end;
+
+procedure TVector.Unshift(AValue: T);
+begin
+  Item[-1] := AValue;
 end;
 
 procedure TVector.Assign(Values: DataType; Head: Integer; Tail: Integer);
