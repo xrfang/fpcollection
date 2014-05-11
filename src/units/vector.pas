@@ -1,7 +1,9 @@
 unit vector;
 {$mode objfpc}{$H+}{$Inline ON}
 interface
+uses types;
 type
+  PIntegerDynArray = ^TIntegerDynArray;
   generic TVector<T> = class
   type
     DataType = array of T;
@@ -10,12 +12,12 @@ type
     FOrder: Integer;
     FCapacity: Cardinal;
     FFirst, FLast: Integer;
-    FData: DataType;
     FDefault: T;
     function GetCount: Integer;
     procedure AdjustHeadCapacity(Target: Integer);
     procedure AdjustTailCapacity(Target: Integer);
   protected
+    FData: DataType;
     function GetItem(Index: Integer): T; virtual;
     procedure SetItem(Index: Integer; AValue: T); virtual;
   public
@@ -38,17 +40,14 @@ type
     procedure Unshift(AValue: T);
   end;
   generic TSortableVector<T> = class(specialize TVector<T>)
-  type
-    TSwapAssoc = procedure(idx1, idx2: Integer) of object;
-  private
-    procedure SwapAssoc({%H-}idx1, {%H-}idx2: Integer); inline;
   protected
     function OnSort({%H-}v1, {%H-}v2: T): Integer; virtual;
+    procedure Swap(idx1, idx2: Integer; sync: PIntegerDynArray = nil); inline;
   public
     function Max: T;
     function Min: T;
-    procedure Sort(Reversed: Boolean = False; DoAssoc: TSwapAssoc = nil);
-    procedure Swap(idx1, idx2: Integer); inline;
+    procedure Sort(Reversed: Boolean = False; OldOrder: PIntegerDynArray = nil);
+    procedure ReOrder(order: TIntegerDynArray);
   end;
   TIntegerVector = specialize TSortableVector<Integer>;
   TDoubleVector = specialize TSortableVector<Double>;
@@ -59,28 +58,24 @@ type
 implementation
 uses math;
 
-procedure TSortableVector.SwapAssoc(idx1, idx2: Integer);
-begin
-  (* do nothing *)
-end;
-
-procedure TSortableVector.Sort(Reversed: Boolean; DoAssoc: TSwapAssoc);
+procedure TSortableVector.Sort(Reversed: Boolean; OldOrder: PIntegerDynArray);
 var
   i, gap, tail, pos: Integer;
 begin
   if FLast <= FFirst then Exit;
   if Reversed then FOrder := 1 else FOrder := -1;
-  if DoAssoc = nil then DoAssoc := @SwapAssoc;
+  if OldOrder <> nil then begin
+    SetLength(OldOrder^, FLast - FFirst + 1);
+    for i := 0 to FLast - FFirst do OldOrder^[i] := i;
+  end;
   //comb sort for large gaps
   gap := FLast - FFirst + 1;
   while gap > 10 do begin
     gap := trunc(gap / 1.3);
     if gap in [9, 10] then gap := 11;
     for i := FFirst to FLast - gap do begin
-      if FOrder * OnSort(FData[i], FData[i + gap]) < 0 then begin
-        Swap(i, i + gap);
-        DoAssoc(i - FFirst, i - FFirst + gap);
-      end;
+      if FOrder * OnSort(FData[i], FData[i + gap]) < 0 then
+        Swap(i, i + gap, OldOrder);
     end;
   end;
   //fallback to (optimized) gnome sort for small gaps
@@ -88,8 +83,7 @@ begin
   tail := FFirst;
   while pos <= FLast do begin
     if FOrder * OnSort(FData[pos - 1], FData[pos]) < 0 then begin
-      Swap(pos, pos - 1);
-      DoAssoc(pos - FFirst, pos - FFirst - 1);
+      Swap(pos, pos - 1, OldOrder);
       if pos > FFirst + 1 then begin
         if tail = FFirst then tail := pos;
         Dec(pos);
@@ -102,6 +96,16 @@ begin
       Inc(pos);
     end;
   end;
+end;
+
+procedure TSortableVector.ReOrder(order: TIntegerDynArray);
+var
+  arr: DataType;
+  i: Integer;
+begin
+  SetLength(arr, Length(order));
+  for i := 0 to Length(order) - 1 do arr[i] := Item[order[i]];
+  Assign(arr);
 end;
 
 function TSortableVector.OnSort(v1, v2: T): Integer;
@@ -140,10 +144,16 @@ begin
   end;
 end;
 
-procedure TSortableVector.Swap(idx1, idx2: Integer);
+procedure TSortableVector.Swap(idx1, idx2: Integer; sync: PIntegerDynArray);
 var
+  idx: Integer;
   Temp: T;
 begin
+  if sync <> nil then begin
+    idx := sync^[idx1 - FFirst];
+    sync^[idx1 - FFirst] := sync^[idx2 - FFirst];
+    sync^[idx2 - FFirst] := idx;
+  end;
   Temp := FData[idx1];
   FData[idx1] := FData[idx2];
   FData[idx2] := Temp;
