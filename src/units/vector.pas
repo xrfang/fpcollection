@@ -31,6 +31,7 @@ type
     property Raw: DataType read FData;
     constructor Create(ADefault: T; AName: string = '');
     destructor Destroy; override;
+    function Copy(Head: Integer = 0; Tail: Integer = -1): DataType;
     function Pop: T;
     function Shift: T;
     procedure Assign(Values: DataType; Head: Integer = 0; Tail: Integer = -1);
@@ -47,7 +48,7 @@ type
     function Max: T;
     function Min: T;
     procedure Sort(Reversed: Boolean = False; OldOrder: PIntegerDynArray = nil);
-    procedure ReOrder(order: TIntegerDynArray);
+    procedure ReOrder(order: TIntegerDynArray; Restore: Boolean = False);
   end;
   TIntegerVector = specialize TSortableVector<Integer>;
   TDoubleVector = specialize TSortableVector<Double>;
@@ -98,13 +99,14 @@ begin
   end;
 end;
 
-procedure TSortableVector.ReOrder(order: TIntegerDynArray);
+procedure TSortableVector.ReOrder(order: TIntegerDynArray; Restore: Boolean);
 var
   arr: DataType;
   i: Integer;
 begin
   SetLength(arr, Length(order));
-  for i := 0 to Length(order) - 1 do arr[i] := Item[order[i]];
+  if Restore then for i := 0 to Length(order) - 1 do arr[order[i]] := Item[i]
+  else for i := 0 to Length(order) - 1 do arr[i] := Item[order[i]];
   Assign(arr);
 end;
 
@@ -221,6 +223,18 @@ end;
 destructor TVector.Destroy;
 begin
   Clear;
+end;
+
+function TVector.Copy(Head: Integer; Tail: Integer): DataType;
+var
+  len: Integer;
+begin
+  Head := Head + FFirst;
+  if Tail < 0 then Tail := Tail + FLast else Tail := Tail + FFirst;
+  len := Tail - Head + 1;
+  if len <= 0 then Exit(nil);
+  SetLength(Result, len);
+  Move(FData[Head], Result[0], len * SizeOf(T));
 end;
 
 procedure TVector.Push(AValue: T);
