@@ -26,7 +26,7 @@ begin
     _last := i;
     Break;
   end;
-  passed := nl.Copy(_first, _last);
+  passed := nl.Dump(_first, _last);
   WriteLn('Sorted:');
   for i := 0 to nl.Count - 1 do Write(nl[i], #9);
   WriteLn;

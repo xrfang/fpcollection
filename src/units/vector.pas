@@ -31,7 +31,7 @@ type
     property Raw: DataType read FData;
     constructor Create(ADefault: T; AName: string = '');
     destructor Destroy; override;
-    function Copy(Head: Integer = 0; Tail: Integer = -1): DataType;
+    function Dump(Head: Integer = 0; Tail: Integer = -1): DataType;
     function Pop: T;
     function Shift: T;
     procedure Assign(Values: DataType; Head: Integer = 0; Tail: Integer = -1);
@@ -225,7 +225,7 @@ begin
   Clear;
 end;
 
-function TVector.Copy(Head: Integer; Tail: Integer): DataType;
+function TVector.Dump(Head: Integer; Tail: Integer): DataType;
 var
   len: Integer;
 begin
