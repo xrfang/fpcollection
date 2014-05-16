@@ -33,10 +33,10 @@ type
     destructor Destroy; override;
     function Dump(Head: Integer = 0; Tail: Integer = -1): DataType;
     function Pop: T;
+    function Push(AValue: T): Integer;
     function Shift: T;
     procedure Assign(Values: DataType; Head: Integer = 0; Tail: Integer = -1);
     procedure Clear;
-    procedure Push(AValue: T);
     procedure Trim;
     procedure Unshift(AValue: T);
   end;
@@ -237,9 +237,10 @@ begin
   Move(FData[Head], Result[0], len * SizeOf(T));
 end;
 
-procedure TVector.Push(AValue: T);
+function TVector.Push(AValue: T): Integer;
 begin
-  Item[FLast + 1] := AValue;
+  Result := FLast + 1;
+  Item[Result] := AValue;
 end;
 
 function TVector.Pop: T;
