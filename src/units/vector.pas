@@ -8,7 +8,6 @@ type
   type
     DataType = array of T;
   private
-    FName: string;
     FOrder: Integer;
     FCapacity: Cardinal;
     FFirst, FLast: Integer;
@@ -27,9 +26,8 @@ type
     property Item[Index: Integer]: T read GetItem write SetItem; default;
     property Last: Integer read FLast write FLast;
     property MissingValue: T read FDefault write FDefault;
-    property Name: string read FName write FName;
     property Raw: DataType read FData;
-    constructor Create(ADefault: T; AName: string = '');
+    constructor Create(ADefault: T);
     destructor Destroy; override;
     function Dump(Head: Integer = 0; Tail: Integer = -1): DataType;
     function Pop: T;
@@ -213,10 +211,9 @@ begin
   FLast := Target;
 end;
 
-constructor TVector.Create(ADefault: T; AName: string);
+constructor TVector.Create(ADefault: T);
 begin
   FDefault := ADefault;
-  FName := AName;
   Clear;
 end;
 
