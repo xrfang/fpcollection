@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -26,7 +26,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="1">
@@ -34,7 +33,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="demo2.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -53,6 +52,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="dsheet"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="../../../units/spainter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="spainter"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

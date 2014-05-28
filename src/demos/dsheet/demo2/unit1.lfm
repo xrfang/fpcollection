@@ -13,7 +13,7 @@ object Form1: TForm1
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.14.0'
+  LCLVersion = '1.2.2.0'
   object tc: TTabControl
     Left = 0
     Height = 480
@@ -33,9 +33,9 @@ object Form1: TForm1
     TabOrder = 0
     object pc: TPageControl
       Left = 60
-      Height = 480
-      Top = 0
-      Width = 579
+      Height = 476
+      Top = 2
+      Width = 577
       ActivePage = TabSheet1
       Align = alClient
       TabIndex = 0
@@ -43,22 +43,22 @@ object Form1: TForm1
       TabPosition = tpBottom
       object TabSheet1: TTabSheet
         Caption = 'Chart'
-        ClientHeight = 448
-        ClientWidth = 575
+        ClientHeight = 444
+        ClientWidth = 573
         object Panel1: TPanel
-          Left = 445
-          Height = 448
+          Left = 443
+          Height = 444
           Top = 0
           Width = 130
           Align = alRight
           BevelOuter = bvNone
           Caption = 'Panel1'
-          ClientHeight = 448
+          ClientHeight = 444
           ClientWidth = 130
           TabOrder = 0
           object pcopts: TPageControl
             Left = 0
-            Height = 448
+            Height = 444
             Top = 0
             Width = 130
             ActivePage = tsoOHLC
@@ -68,7 +68,7 @@ object Form1: TForm1
             TabOrder = 0
             object tsoBase: TTabSheet
               Caption = 'tsoBase'
-              ClientHeight = 444
+              ClientHeight = 440
               ClientWidth = 126
               object pnBGColor: TPanel
                 Left = 11
@@ -136,7 +136,7 @@ object Form1: TForm1
             end
             object tsoOHLC: TTabSheet
               Caption = 'tsoOHLC'
-              ClientHeight = 444
+              ClientHeight = 440
               ClientWidth = 126
               object pnYinColor: TPanel
                 Left = 11
@@ -222,7 +222,7 @@ object Form1: TForm1
             end
             object tsoLine: TTabSheet
               Caption = 'tsoLine'
-              ClientHeight = 444
+              ClientHeight = 440
               ClientWidth = 126
               object cbSplitAxis: TCheckBox
                 Left = 11
@@ -236,7 +236,7 @@ object Form1: TForm1
             end
             object tsoBars: TTabSheet
               Caption = 'tsoBars'
-              ClientHeight = 444
+              ClientHeight = 440
               ClientWidth = 126
               object rgBarStyle: TRadioGroup
                 Left = 11
@@ -269,7 +269,7 @@ object Form1: TForm1
             end
             object tsoScat: TTabSheet
               Caption = 'tsoScat'
-              ClientHeight = 444
+              ClientHeight = 440
               ClientWidth = 126
               object rgScatStyle: TRadioGroup
                 Left = 11
@@ -311,8 +311,8 @@ object Form1: TForm1
           end
         end
         object Splitter1: TSplitter
-          Left = 440
-          Height = 448
+          Left = 438
+          Height = 444
           Top = 0
           Width = 5
           Align = alRight
@@ -320,38 +320,38 @@ object Form1: TForm1
         end
         object Panel2: TPanel
           Left = 0
-          Height = 448
+          Height = 444
           Top = 0
-          Width = 440
+          Width = 438
           Align = alClient
           BevelOuter = bvNone
-          ClientHeight = 448
-          ClientWidth = 440
+          ClientHeight = 444
+          ClientWidth = 438
           TabOrder = 2
           object Panel3: TPanel
             Left = 0
             Height = 20
             Top = 0
-            Width = 440
+            Width = 438
             Align = alTop
             BevelOuter = bvNone
             ClientHeight = 20
-            ClientWidth = 440
+            ClientWidth = 438
             TabOrder = 0
             object lbLegend: TLabel
               Left = 0
               Height = 20
               Top = 0
-              Width = 440
+              Width = 438
               Align = alClient
               ParentColor = False
             end
           end
           object pb: TPaintBox
             Left = 0
-            Height = 415
+            Height = 411
             Top = 20
-            Width = 440
+            Width = 438
             Align = alClient
             OnMouseDown = pbMouseDown
             OnMouseMove = pbMouseMove
@@ -360,8 +360,8 @@ object Form1: TForm1
           object sb: TScrollBar
             Left = 0
             Height = 13
-            Top = 435
-            Width = 440
+            Top = 431
+            Width = 438
             Align = alBottom
             PageSize = 0
             Position = 100
@@ -372,8 +372,8 @@ object Form1: TForm1
       end
       object TabSheet2: TTabSheet
         Caption = 'Data'
-        ClientHeight = 448
-        ClientWidth = 575
+        ClientHeight = 444
+        ClientWidth = 573
         object lv: TListView
           Left = 0
           Height = 448
