@@ -14,6 +14,7 @@ type
     cbStyle: TComboBox;
     cbSplitAxis: TCheckBox;
     cbScatFull: TCheckBox;
+    cbNoB: TCheckBox;
     Label1: TLabel;
     lbLegend: TLabel;
     lv: TListView;
@@ -41,6 +42,7 @@ type
     tsoOHLC: TTabSheet;
     tsoBase: TTabSheet;
     tc: TTabControl;
+    procedure cbNoBChange(Sender: TObject);
     procedure cbScatFullChange(Sender: TObject);
     procedure cbSplitAxisChange(Sender: TObject);
     procedure cbStyleChange(Sender: TObject);
@@ -106,6 +108,11 @@ end;
 procedure TForm1.cbScatFullChange(Sender: TObject);
 begin
   pb.Invalidate;
+end;
+
+procedure TForm1.cbNoBChange(Sender: TObject);
+begin
+  RefreshOpts;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -332,11 +339,12 @@ end;
 procedure TForm1.RefreshOpts;
   procedure RefreshBaseOpts;
   var
-    s: string;
+    s, cs: string;
   begin
     opts_base.Clear;
-    opts_base.Add('color', ColorCSS(pnBGColor.Color) + ',' +
-                           ColorCSS(pnBorderColor.Color));
+    cs := ColorCSS(pnBGColor.Color);
+    if not cbNoB.Checked then cs += ',' + ColorCSS(pnBorderColor.Color);
+    opts_base.Add('color', cs);
     s := cbStyle.Text;
     if      s = 'solid'        then s := '-'
     else if s = 'dash'         then s := '--'

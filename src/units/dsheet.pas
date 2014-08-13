@@ -261,7 +261,7 @@ var
 begin
   clrs := opts.Get('color', '#FFFFFF,#000000');
   FBGColor := CSSColor(cut(clrs));
-  bcolor := CSSColor(cut(clrs));
+  if clrs = '' then bcolor := FBGColor else bcolor := CSSColor(cut(clrs));
   bstyle := opts.Get('style', '-');
   bwidth := ifthen(bstyle = '=', 2, 1);
   with ACanvas do begin
