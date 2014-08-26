@@ -17,7 +17,7 @@ type
     function RLEncode(Value: QWord; Output: TStream): Integer;
     function RLDecode(Input: TStream; out Value: QWord): Integer;
     procedure DoClone(var Target: TSelfType); virtual;
-    function DoCompare(Target: TSelfType): Integer; virtual;
+    function DoCompare(Target: TSelfType; P: PtrUInt): Integer; virtual;
     function DoPersist(out Ptr: Pointer): Integer; virtual;
     procedure DoRestore(Ptr: Pointer; Size: QWord); virtual;
   public
@@ -29,7 +29,7 @@ type
     function Children: Cardinal;
     procedure Clear;
     function Clone: TTree;
-    function Compare(ATree: TTree): Integer;
+    function Compare(ATree: TTree; Param: PtrUInt = 0): Integer;
     function Descendants: Cardinal;
     function FirstChild: TTree;
     function FirstDescendant: TTree;
@@ -152,14 +152,14 @@ begin
   DoClone(Result);
 end;
 
-function TTree.Compare(ATree: TTree): Integer;
+function TTree.Compare(ATree: TTree; Param: PtrUInt): Integer;
 var
   i: Integer;
 begin
   if ATree = nil then Exit(1);
-  Result := DoCompare(ATree);
+  Result := DoCompare(ATree, Param);
   if Result = 0 then for i := 1 to Children do begin
-    Result := Child[i].Compare(ATree.Child[i]);
+    Result := Child[i].Compare(ATree.Child[i], Param);
     if Result <> 0 then Exit;
   end;
   if (Result = 0) and (ATree.Children > Children) then Exit(-1);
@@ -316,8 +316,10 @@ begin
   (* empty *)
 end;
 
-function TTree.DoCompare(Target: TSelfType): Integer;
+function TTree.DoCompare(Target: TSelfType; P: PtrUInt): Integer;
 begin
+  {P maybe used by descendants to control, for example, case-sensitiveness
+   of the comparison}
   if Data = Target.Data then Exit(0);
   if Data < Target.Data then Exit(-1);
   Result := 1;
