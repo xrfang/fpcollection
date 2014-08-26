@@ -318,11 +318,23 @@ end;
 
 function TTree.DoCompare(Target: TSelfType; P: PtrUInt): Integer;
 begin
-  {P maybe used by descendants to control, for example, case-sensitiveness
-   of the comparison}
-  if Data = Target.Data then Exit(0);
-  if Data < Target.Data then Exit(-1);
-  Result := 1;
+{
+1. P maybe used by descendants to control, for example, case-sensitiveness
+   of the comparison
+2. By default, TTree nodes are not comparable. Descendants must define their
+   own comparison methods.  This is due to the fact that, until FPC 2.6.2,
+   operator overloading is required to be defined in the unit where the
+   generic class is DEFINED rather than where it is SPECIALIZED. In the future,
+   while FPC's operator overloading mechanism improves, this method should be
+   defined as:
+
+      if Data = Target.Data then Exit(0);
+      if Data < Target.Data then Exit(-1);
+      Result := 1;
+
+  to provide basic comparison capability for primitive types (such as integer).
+}
+  Result := 0;
 end;
 
 function TTree.DoPersist(out Ptr: Pointer): Integer;
