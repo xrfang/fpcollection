@@ -16,8 +16,8 @@ type
   protected
     function RLEncode(Value: QWord; Output: TStream): Integer;
     function RLDecode(Input: TStream; out Value: QWord): Integer;
-    procedure DoClone(Source: TSelfType; var Target: TSelfType); virtual;
-    function DoCompare(Source, Target: TSelfType): Integer; virtual;
+    procedure DoClone(var Target: TSelfType); virtual;
+    function DoCompare(Target: TSelfType): Integer; virtual;
     function DoPersist(out Ptr: Pointer): Integer; virtual;
     procedure DoRestore(Ptr: Pointer; Size: QWord); virtual;
   public
@@ -149,7 +149,7 @@ begin
     if ndup <> nil then ndup.Remove(Result);
     nsrc := nsrc.NextSibling;
   end;
-  DoClone(Self, Result);
+  DoClone(Result);
 end;
 
 function TTree.Compare(ATree: TTree): Integer;
@@ -157,7 +157,7 @@ var
   i: Integer;
 begin
   if ATree = nil then Exit(1);
-  Result := DoCompare(Self, ATree);
+  Result := DoCompare(ATree);
   if Result = 0 then for i := 1 to Children do begin
     Result := Child[i].Compare(ATree.Child[i]);
     if Result <> 0 then Exit;
@@ -311,15 +311,15 @@ begin
   if not Complete then Result := -Result;
 end;
 
-procedure TTree.DoClone(Source: TSelfType; var Target: TSelfType);
+procedure TTree.DoClone(var Target: TSelfType);
 begin
   (* empty *)
 end;
 
-function TTree.DoCompare(Source, Target: TSelfType): Integer;
+function TTree.DoCompare(Target: TSelfType): Integer;
 begin
-  if Source.Data = Target.Data then Exit(0);
-  if Source.Data < Target.Data then Exit(-1);
+  if Data = Target.Data then Exit(0);
+  if Data < Target.Data then Exit(-1);
   Result := 1;
 end;
 

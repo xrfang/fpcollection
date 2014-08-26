@@ -6,13 +6,13 @@ type
   private
     FSalt: Double;
   protected
-    procedure DoClone(Source: TSelfType; var Target: TSelfType); override;
+    procedure DoClone(var Target: TSelfType); override;
   public
     constructor Create(AData: Integer; AParent: TIntTree); reintroduce;
   end;
   TOddTree = class(TIntTree)
   protected
-    procedure DoClone(Source: TSelfType; var Target: TSelfType); override;
+    procedure DoClone(var Target: TSelfType); override;
   end;
 
 procedure PrintTree(tr: TIntTree);
@@ -26,20 +26,19 @@ begin
   end;
 end;
 
-procedure TOddTree.DoClone(Source: TSelfType; var Target: TSelfType);
+procedure TOddTree.DoClone(var Target: TSelfType);
 begin
-  inherited DoClone(Source, Target);
+  inherited DoClone(Target);
   if Target.Data mod 2 = 0 then FreeAndNil(Target);
 end;
 
-procedure TIntTree.DoClone(Source: TSelfType; var Target: TSelfType);
+procedure TIntTree.DoClone(var Target: TSelfType);
 var
-  _s, _t: TIntTree;
+  _t: TIntTree;
 begin
-  _s := Source as TIntTree;
   _t := Target as TIntTree;
   _t.Data *= 3;
-  _t.FSalt := _s.FSalt;
+  _t.FSalt := FSalt;
 end;
 
 constructor TIntTree.Create(AData: Integer; AParent: TIntTree);

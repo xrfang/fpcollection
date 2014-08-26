@@ -41,7 +41,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="../../../bin/demo4"/>
+      <Filename Value="../../../bin/tree4"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
