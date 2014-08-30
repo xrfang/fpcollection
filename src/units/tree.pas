@@ -17,6 +17,7 @@ type
     function RLEncode(Value: QWord; Output: TStream): Integer;
     function RLDecode(Input: TStream; out Value: QWord): Integer;
     procedure DoClone(var Target: TSelfType); virtual;
+    procedure DoDestroy; virtual;
     function DoCompare(Target: TSelfType; P: PtrUInt): Integer; virtual;
     function DoPersist(out Ptr: Pointer): Integer; virtual;
     procedure DoRestore(Ptr: Pointer; Size: QWord); virtual;
@@ -316,6 +317,11 @@ begin
   (* empty *)
 end;
 
+procedure TTree.DoDestroy;
+begin
+  (* empty *)
+end;
+
 function TTree.DoCompare(Target: TSelfType; P: PtrUInt): Integer;
 begin
 {
@@ -362,6 +368,7 @@ end;
 destructor TTree.Destroy;
 begin
   Remove;
+  DoDestroy;
   with FItems do while Count > 0 do TTree(FItems[Count - 1]).Free;
   FItems.Free;
 end;
