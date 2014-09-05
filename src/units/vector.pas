@@ -48,14 +48,53 @@ type
     procedure Sort(Reversed: Boolean = False; OldOrder: PIntegerDynArray = nil);
     procedure ReOrder(order: TIntegerDynArray; Restore: Boolean = False);
   end;
-  TIntegerVector = specialize TSortableVector<Integer>;
-  TDoubleVector = specialize TSortableVector<Double>;
+  TIntegerVector = class(specialize TSortableVector<Integer>)
+  protected
+    function OnSort(v1, v2: Integer): Integer; override;
+  end;
+  TDoubleVector = class(specialize TSortableVector<Double>)
+  protected
+    function OnSort(v1, v2: Double): Integer; override;
+  end;
+  TStringVector = class(specialize TSortableVector<string>)
+  protected
+    function OnSort(v1, v2: string): Integer; override;
+  end;
   TObjectVector = specialize TVector<TObject>;
   TPointerVector = specialize TVector<Pointer>;
-  TStringVector = specialize TSortableVector<string>;
 
 implementation
 uses math;
+
+function TDoubleVector.OnSort(v1, v2: Double): Integer;
+begin
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function TStringVector.OnSort(v1, v2: string): Integer;
+begin
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function TIntegerVector.OnSort(v1, v2: Integer): Integer;
+begin
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
+end;
 
 procedure TSortableVector.Sort(Reversed: Boolean; OldOrder: PIntegerDynArray);
 var
@@ -108,16 +147,6 @@ begin
   Assign(arr);
 end;
 
-function TSortableVector.OnSort(v1, v2: T): Integer;
-begin
-  if v1 < v2 then
-    Result := -1
-  else if v1 > v2 then
-    Result := 1
-  else
-    Result := 0;
-end;
-
 function TSortableVector.Max: T;
 var
   i: Integer;
@@ -142,6 +171,11 @@ begin
     Result := FData[FFirst];
     for i := FFirst+1 to FLast do if FData[i] < Result then Result := FData[i];
   end;
+end;
+
+function TSortableVector.OnSort(v1, v2: T): Integer;
+begin
+  Result := 0;
 end;
 
 procedure TSortableVector.Swap(idx1, idx2: Integer; sync: PIntegerDynArray);
