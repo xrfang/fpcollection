@@ -43,10 +43,9 @@ type
     function OnSort({%H-}v1, {%H-}v2: T): Integer; virtual;
     procedure Swap(idx1, idx2: Integer; sync: PIntegerDynArray = nil); inline;
   public
-    function Max: T;
-    function Min: T;
+    property Order: Integer read FOrder;
     procedure Sort(Reversed: Boolean = False; OldOrder: PIntegerDynArray = nil);
-    procedure ReOrder(order: TIntegerDynArray; Restore: Boolean = False);
+    procedure ReOrder(ord: TIntegerDynArray; Restore: Boolean = False);
   end;
   TIntegerVector = class(specialize TSortableVector<Integer>)
   protected
@@ -136,41 +135,15 @@ begin
   end;
 end;
 
-procedure TSortableVector.ReOrder(order: TIntegerDynArray; Restore: Boolean);
+procedure TSortableVector.ReOrder(ord: TIntegerDynArray; Restore: Boolean);
 var
   arr: DataType;
   i: Integer;
 begin
-  SetLength(arr, Length(order));
-  if Restore then for i := 0 to Length(order) - 1 do arr[order[i]] := Item[i]
-  else for i := 0 to Length(order) - 1 do arr[i] := Item[order[i]];
+  SetLength(arr, Length(ord));
+  if Restore then for i := 0 to Length(ord) - 1 do arr[ord[i]] := Item[i]
+  else for i := 0 to Length(ord) - 1 do arr[i] := Item[ord[i]];
   Assign(arr);
-end;
-
-function TSortableVector.Max: T;
-var
-  i: Integer;
-begin
-  if FLast < FFirst then  Exit(FDefault);
-  if FOrder > 0 then      Exit(FData[FFirst])
-  else if FOrder < 0 then Exit(FData[FLast])
-  else begin
-    Result := FData[FFirst];
-    for i := FFirst+1 to FLast do if FData[i] > Result then Result := FData[i];
-  end;
-end;
-
-function TSortableVector.Min: T;
-var
-  i: Integer;
-begin
-  if FLast < FFirst then  Exit(FDefault);
-  if FOrder > 0 then      Exit(FData[FLast])
-  else if FOrder < 0 then Exit(FData[FFirst])
-  else begin
-    Result := FData[FFirst];
-    for i := FFirst+1 to FLast do if FData[i] < Result then Result := FData[i];
-  end;
 end;
 
 function TSortableVector.OnSort(v1, v2: T): Integer;
