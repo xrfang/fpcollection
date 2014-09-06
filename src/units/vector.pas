@@ -15,6 +15,7 @@ type
     function GetCount: Integer;
     procedure AdjustHeadCapacity(Target: Integer);
     procedure AdjustTailCapacity(Target: Integer);
+    procedure Initialize;
   protected
     FData: DataType;
     function GetItem(Index: Integer): T; virtual;
@@ -218,10 +219,19 @@ begin
   FLast := Target;
 end;
 
+procedure TVector.Initialize;
+begin
+  FFirst := 0;
+  FLast := -1;
+  FCapacity := 0;
+  FData := nil;
+  FOrder := 0;
+end;
+
 constructor TVector.Create(ADefault: T);
 begin
+  Initialize;
   FDefault := ADefault;
-  Clear;
 end;
 
 destructor TVector.Destroy;
@@ -279,11 +289,7 @@ end;
 
 procedure TVector.Clear;
 begin
-  FFirst := 0;
-  FLast := -1;
-  FCapacity := 0;
-  FData := nil;
-  FOrder := 0;
+  Initialize;
 end;
 
 procedure TVector.Trim;
