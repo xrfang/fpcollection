@@ -34,7 +34,7 @@ type
     function Push(AValue: T): Integer;
     function Shift: T;
     procedure Assign(Values: DataType; Head: Integer = 0; Tail: Integer = -1);
-    procedure Clear;
+    procedure Clear; virtual;
     procedure Trim;
     procedure Unshift(AValue: T);
   end;
