@@ -254,7 +254,9 @@ end;
 function TVector.Push(AValue: T): Integer;
 begin
   Result := FLast + 1;
-  Item[Result] := AValue;
+  AdjustTailCapacity(Result);
+  FData[Result] := AValue;
+  FOrder := 0;
 end;
 
 function TVector.Pop: T;
