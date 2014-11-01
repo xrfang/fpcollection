@@ -15,6 +15,7 @@ type
     function GetCount: Integer;
     procedure AdjustHeadCapacity(Target: Integer);
     procedure AdjustTailCapacity(Target: Integer);
+    procedure Initialize;
   protected
     FData: DataType;
     function GetItem(Index: Integer): T; virtual;
@@ -34,7 +35,7 @@ type
     function Push(AValue: T): Integer;
     function Shift: T;
     procedure Assign(Values: DataType; Head: Integer = 0; Tail: Integer = -1);
-    procedure Clear;
+    procedure Clear; virtual;
     procedure Trim;
     procedure Unshift(AValue: T);
   end;
@@ -43,19 +44,57 @@ type
     function OnSort({%H-}v1, {%H-}v2: T): Integer; virtual;
     procedure Swap(idx1, idx2: Integer; sync: PIntegerDynArray = nil); inline;
   public
-    function Max: T;
-    function Min: T;
+    property Order: Integer read FOrder;
     procedure Sort(Reversed: Boolean = False; OldOrder: PIntegerDynArray = nil);
-    procedure ReOrder(order: TIntegerDynArray; Restore: Boolean = False);
+    procedure ReOrder(ord: TIntegerDynArray; Restore: Boolean = False);
   end;
-  TIntegerVector = specialize TSortableVector<Integer>;
-  TDoubleVector = specialize TSortableVector<Double>;
+  TIntegerVector = class(specialize TSortableVector<Integer>)
+  protected
+    function OnSort(v1, v2: Integer): Integer; override;
+  end;
+  TDoubleVector = class(specialize TSortableVector<Double>)
+  protected
+    function OnSort(v1, v2: Double): Integer; override;
+  end;
+  TStringVector = class(specialize TSortableVector<string>)
+  protected
+    function OnSort(v1, v2: string): Integer; override;
+  end;
   TObjectVector = specialize TVector<TObject>;
   TPointerVector = specialize TVector<Pointer>;
-  TStringVector = specialize TSortableVector<string>;
 
 implementation
 uses math;
+
+function TDoubleVector.OnSort(v1, v2: Double): Integer;
+begin
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function TStringVector.OnSort(v1, v2: string): Integer;
+begin
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function TIntegerVector.OnSort(v1, v2: Integer): Integer;
+begin
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
+end;
 
 procedure TSortableVector.Sort(Reversed: Boolean; OldOrder: PIntegerDynArray);
 var
@@ -97,51 +136,20 @@ begin
   end;
 end;
 
-procedure TSortableVector.ReOrder(order: TIntegerDynArray; Restore: Boolean);
+procedure TSortableVector.ReOrder(ord: TIntegerDynArray; Restore: Boolean);
 var
   arr: DataType;
   i: Integer;
 begin
-  SetLength(arr, Length(order));
-  if Restore then for i := 0 to Length(order) - 1 do arr[order[i]] := Item[i]
-  else for i := 0 to Length(order) - 1 do arr[i] := Item[order[i]];
+  SetLength(arr, Length(ord));
+  if Restore then for i := 0 to Length(ord) - 1 do arr[ord[i]] := Item[i]
+  else for i := 0 to Length(ord) - 1 do arr[i] := Item[ord[i]];
   Assign(arr);
 end;
 
 function TSortableVector.OnSort(v1, v2: T): Integer;
 begin
-  if v1 < v2 then
-    Result := -1
-  else if v1 > v2 then
-    Result := 1
-  else
-    Result := 0;
-end;
-
-function TSortableVector.Max: T;
-var
-  i: Integer;
-begin
-  if FLast < FFirst then  Exit(FDefault);
-  if FOrder > 0 then      Exit(FData[FFirst])
-  else if FOrder < 0 then Exit(FData[FLast])
-  else begin
-    Result := FData[FFirst];
-    for i := FFirst+1 to FLast do if FData[i] > Result then Result := FData[i];
-  end;
-end;
-
-function TSortableVector.Min: T;
-var
-  i: Integer;
-begin
-  if FLast < FFirst then  Exit(FDefault);
-  if FOrder > 0 then      Exit(FData[FLast])
-  else if FOrder < 0 then Exit(FData[FFirst])
-  else begin
-    Result := FData[FFirst];
-    for i := FFirst+1 to FLast do if FData[i] < Result then Result := FData[i];
-  end;
+  Result := 0;
 end;
 
 procedure TSortableVector.Swap(idx1, idx2: Integer; sync: PIntegerDynArray);
@@ -211,10 +219,19 @@ begin
   FLast := Target;
 end;
 
+procedure TVector.Initialize;
+begin
+  FFirst := 0;
+  FLast := -1;
+  FCapacity := 0;
+  FData := nil;
+  FOrder := 0;
+end;
+
 constructor TVector.Create(ADefault: T);
 begin
+  Initialize;
   FDefault := ADefault;
-  Clear;
 end;
 
 destructor TVector.Destroy;
@@ -237,7 +254,9 @@ end;
 function TVector.Push(AValue: T): Integer;
 begin
   Result := FLast + 1;
-  Item[Result] := AValue;
+  AdjustTailCapacity(Result);
+  FData[Result] := AValue;
+  FOrder := 0;
 end;
 
 function TVector.Pop: T;
@@ -272,11 +291,7 @@ end;
 
 procedure TVector.Clear;
 begin
-  FFirst := 0;
-  FLast := -1;
-  FCapacity := 0;
-  FData := nil;
-  FOrder := 0;
+  Initialize;
 end;
 
 procedure TVector.Trim;
