@@ -14,7 +14,7 @@ type
     FBits: array of Byte;
     HS: array [0..7] of LongWord;
     procedure MD5Chop(md: TMD5Digest);
-public
+  public
     property Count: PtrUInt read N;
     property Size: LongWord read FSize;
     constructor Create(Width: Byte);
@@ -46,7 +46,7 @@ begin
     Inc(i);
   end;
   if c > 0 then begin
-    HS[i] := a or ((b and (2 shl (w - c) - 1)) shl c);
+    HS[i] := (a or ((b and (QWord(2) shl (w - c) - 1)) shl c)) and m;
     b := b shr (w - c);
     c := 64 - w + c;
     Inc(i);
@@ -68,7 +68,7 @@ begin
   FSize := 2 shl (FWidth - 4);
   SetLength(FBits, FSize);
   K := HASH_WIDTH div FWidth;
-  Clear;
+  N := 0;
 end;
 
 destructor TBloomFilter.Destroy;
@@ -86,7 +86,7 @@ begin
   for i := 0 to K - 1 do begin
     cell := (HS[i] and $FFFFFFF8) shr 3;
     mask := 1 shl (HS[i] and 7);
-    if FBits[cell] and mask = 0 then Exit(False);
+    if (FBits[cell] and mask) = 0 then Exit(False);
   end;
 end;
 
@@ -113,6 +113,7 @@ begin
     Result := Result and (FBits[cell] and mask <> 0);
     FBits[cell] := FBits[cell] or mask;
   end;
+  if not Result then Inc(N);
 end;
 
 procedure TBloomFilter.Clear; inline;
