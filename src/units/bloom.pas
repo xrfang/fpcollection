@@ -110,7 +110,7 @@ begin
   for i := 0 to K - 1 do begin
     cell := (HS[i] and $FFFFFFF8) shr 3;
     mask := 1 shl (HS[i] and 7);
-    Result := Result and (FBits[cell] and mask = 0);
+    Result := Result and (FBits[cell] and mask <> 0);
     FBits[cell] := FBits[cell] or mask;
   end;
 end;
@@ -118,7 +118,7 @@ end;
 procedure TBloomFilter.Clear; inline;
 begin
   N := 0;
-  FillQWord(FBits[0], FSize div 8, 0);
+  FillChar(FBits[0], FSize, 0);
 end;
 
 end.
