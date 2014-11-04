@@ -76,7 +76,7 @@ begin
   FBits := nil;
 end;
 
-function TBloomFilter.Contains(buf: Pointer; len: PtrUInt): Boolean;
+function TBloomFilter.Contains(buf: Pointer; len: PtrUInt): Boolean; inline;
 var
   i, mask: Byte;
   cell: LongWord;
@@ -90,12 +90,12 @@ begin
   end;
 end;
 
-function TBloomFilter.FalsePositive: Double;
+function TBloomFilter.FalsePositive: Double; inline;
 begin
   Result := Power((1 - exp(-K * N / (2 shl (FWidth - 1)))), K);
 end;
 
-function TBloomFilter.Capacity(fp: Double): PtrUInt;
+function TBloomFilter.Capacity(fp: Double): PtrUInt; inline;
 begin
   Result := Trunc((2 shl (FWidth - 1)) * ln(0.6185) / ln(fp));
 end;
