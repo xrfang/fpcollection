@@ -64,7 +64,7 @@ constructor TBloomFilter.Create(Width: Byte);
 begin
   if      Width >= 32 then FWidth := 32
   else if Width <= 16 then FWidth := 16
-  else                    FWidth := Width;
+  else                     FWidth := Width;
   FSize := 2 shl (FWidth - 4);
   SetLength(FBits, FSize);
   K := HASH_WIDTH div FWidth;
