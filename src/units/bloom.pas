@@ -65,7 +65,7 @@ begin
   if      Width >= 32 then FWidth := 32
   else if Width <= 16 then FWidth := 16
   else                     FWidth := Width;
-  FSize := 2 shl (FWidth - 4);
+  FSize := 1 shl (FWidth - 3);
   SetLength(FBits, FSize);
   K := HASH_WIDTH div FWidth;
   N := 0;
