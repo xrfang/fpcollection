@@ -1,9 +1,9 @@
 program demo;
-uses sysutils, c32hash;
+uses sysutils, cache;
 const
   ITEM_COUNT = 5000000;
 var
-  h: TC32Hash;
+  h: TCache;
   p: PChar;
   b: Boolean;
   t: TDateTime;
@@ -11,7 +11,7 @@ var
   key: array[0..4] of PtrUInt;
 begin
   p := 'Hello';
-  h := TC32Hash.Create(20);
+  h := TCache.Create(20);
   WriteLn('Size=', h.Size);
   b := h.Add(p, strlen(p), p) <> nil;
   WriteLn(BoolToStr(b, True));
