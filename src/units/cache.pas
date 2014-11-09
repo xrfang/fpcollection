@@ -35,7 +35,7 @@ type
 
 implementation
 
-function TCache.BucketOf(key: Pointer; keylen: Cardinal): LongWord;
+function TCache.BucketOf(key: Pointer; keylen: Cardinal): LongWord; inline;
 begin
   Result := crc32(0, key, keylen) and (FSize - 1);
 end;
@@ -45,7 +45,7 @@ begin
   Result := FSize * FDepth;
 end;
 
-function TCache.GetLoadFactor: Double;
+function TCache.GetLoadFactor: Double; inline;
 begin
   Result := N / FSize / FDepth;
 end;
@@ -73,6 +73,7 @@ begin
 end;
 
 function TCache.Get(key: Pointer; keylen: Cardinal; out data: Pointer): Boolean;
+  inline;
 var
   idx: LongWord;
   buf: Pointer;
@@ -93,7 +94,7 @@ begin
   end;
 end;
 
-procedure TCache.Add(key: Pointer; keylen: Cardinal; val: Pointer);
+procedure TCache.Add(key: Pointer; keylen: Cardinal; val: Pointer); inline;
 var
   idx: LongWord;
   buf, slot: Pointer;
