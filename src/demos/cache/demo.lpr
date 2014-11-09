@@ -11,9 +11,8 @@ var
   i, j, hit: PtrUInt;
   key: array[0..4] of PtrUInt;
 begin
-  SetHeapTraceOutput('heap.trc');
   p := 'Hello';
-  h := TCache.Create(20, 2);
+  h := TCache.Create(20, 3);
   WriteLn('Width=', h.Width, ', Depth=', h.Depth, ', Capacity=', h.Capacity);
   b := h.Get(p, strlen(p), v);
   WriteLn(BoolToStr(b, True));
@@ -29,8 +28,7 @@ begin
     h.Add(@key, SizeOf(PtrUInt) * 5, Pointer($deadbeef + i));
   end;
   t := Now - t;
-  if t > 0 then
-    WriteLn('Write Speed (Item/Sec): ', (ITEM_COUNT/t/86400):0:0);
+  WriteLn('Write Speed (Item/Sec): ', (ITEM_COUNT/t/86400):0:0);
   WriteLn('Load Factor (%): ', (h.LoadFactor * 100):0:3);
   hit := 0;
   t := Now;
@@ -39,9 +37,7 @@ begin
     if h.Get(@key, SizeOf(PtrUInt) * 5, v) then Inc(hit);
   end;
   t := Now - t;
-  if t > 0 then
-    WriteLn('Read Speed (Item/Sec): ', (ITEM_COUNT/t/86400):0:0);
+  WriteLn('Read Speed (Item/Sec): ', (ITEM_COUNT/t/86400):0:0);
   WriteLn('Hit Rate (%): ', (hit / ITEM_COUNT * 100):0:3);
   h.Free;
 end.
-

@@ -109,7 +109,7 @@ begin
     ci := PCacheItem(buf^);
     Inc(N);
   end else begin
-    ci := PCacheItem((buf + SizeOf(Pointer) * Random(FDepth))^);
+    ci := nil;
     for i := 0 to FDepth - 1 do begin
       slot := buf + SizeOf(Pointer) * i;
       if Pointer(slot^) = nil then begin
@@ -118,6 +118,10 @@ begin
         ci := PCacheItem(slot^);
         Break;
       end;
+    end;
+    if ci = nil then begin
+      ci := PCacheItem((buf + SizeOf(Pointer) * Random(FDepth))^);
+      Freemem(ci^.key);
     end;
   end;
   ci^.key := AllocMem(keylen);
