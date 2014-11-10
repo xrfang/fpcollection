@@ -15,7 +15,7 @@ type
     function GetCapacity: QWord;
     function GetLoadFactor: Double;
   protected
-    procedure Disposer({%H-}ptr: Pointer);
+    procedure OnDispose({%H-}ptr: Pointer);
   public
     property Width: Byte read FWidth;
     property Depth: Byte read FDepth;
@@ -51,7 +51,7 @@ begin
   Result := N / FSize / FDepth;
 end;
 
-procedure TCache.Disposer(ptr: Pointer); inline;
+procedure TCache.OnDispose(ptr: Pointer); inline;
 begin
   (* empty *)
 end;
@@ -142,7 +142,7 @@ begin
       ci := PCacheItem((FBuckets[i] + j * SizeOf(Pointer))^);
       if ci <> nil then begin
         Freemem(ci^.key);
-        Disposer(ci^.val);
+        OnDispose(ci^.val);
         Dispose(ci);
       end;
     end;
