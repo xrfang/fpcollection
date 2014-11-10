@@ -4,11 +4,6 @@ interface
 uses crc;
 
 type
-  PCacheItem = ^TCacheItem;
-  TCacheItem = record
-    key: Pointer;
-    val: Pointer;
-  end;
   TCache = class
   private
     N: QWord;
@@ -34,6 +29,12 @@ type
   end;
 
 implementation
+type
+  PCacheItem = ^TCacheItem;
+  TCacheItem = record
+    key: Pointer;
+    val: Pointer;
+  end;
 
 function TCache.BucketOf(key: Pointer; keylen: Cardinal): LongWord; inline;
 begin
