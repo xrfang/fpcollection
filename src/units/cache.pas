@@ -124,6 +124,7 @@ begin
     if ci = nil then begin
       ci := PCacheItem((buf + SizeOf(Pointer) * Random(FDepth))^);
       Freemem(ci^.key);
+      OnDispose(ci^.val);
     end;
   end;
   ci^.key := AllocMem(keylen);
