@@ -15,7 +15,7 @@ type
     function GetCapacity: QWord;
     function GetLoadFactor: Double;
   protected
-    procedure OnDispose({%H-}ptr: Pointer);
+    procedure OnDispose({%H-}ptr: Pointer); virtual;
   public
     property Width: Byte read FWidth;
     property Depth: Byte read FDepth;
@@ -51,7 +51,7 @@ begin
   Result := N / FSize / FDepth;
 end;
 
-procedure TCache.OnDispose(ptr: Pointer); inline;
+procedure TCache.OnDispose(ptr: Pointer);
 begin
   (* empty *)
 end;
