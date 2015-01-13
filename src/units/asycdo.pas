@@ -8,7 +8,10 @@ type
   TAsyncDo = class
   private type
     Worker = class(TThread)
-
+    private
+      Signal: PRTLEvent;
+    public
+      constructor Create(const StackSize: SizeUInt = DefaultStackSize);
     end;
   private
     NumWorker: Integer;
@@ -28,6 +31,7 @@ begin
   SetLength(wks, workers);
   for i := 0 to workers - 1 do begin
     wks[i] := Worker.Create(False, stack);
+    RTLeventSetEvent(wks[i].Signal);
   end;
 end;
 
