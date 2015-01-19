@@ -5,7 +5,7 @@
     <General>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="demo"/>
+      <Title Value="demo2"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
     </General>
@@ -33,9 +33,9 @@
     </RequiredPackages>
     <Units Count="4">
       <Unit0>
-        <Filename Value="demo.lpr"/>
+        <Filename Value="demo2.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="demo"/>
+        <UnitName Value="demo2"/>
       </Unit0>
       <Unit1>
         <Filename Value="unit1.pas"/>
