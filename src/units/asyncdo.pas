@@ -2,7 +2,7 @@ unit asyncdo;
 {$mode objfpc}{$H+}
 interface
 
-uses Classes {, SysUtils};
+uses Classes;
 
 type
   TAsyncDo = class
@@ -38,7 +38,6 @@ begin
     RTLeventWaitFor(Signal);
     if Terminated then Exit;
     RTLeventResetEvent(Signal);
-    Stat := 1;
     Doer.Task(Data);
     Stat := 0;
   end;
@@ -85,6 +84,7 @@ var
 begin
   for i := 0 to Length(wks) - 1 do if IsWIP(UserData, wks[i].Data) then Exit(1);
   for i := 0 to Length(wks) - 1 do if wks[i].Stat = 0 then begin
+    wks[i].Stat := 1;
     wks[i].Data := UserData;
     RTLeventSetEvent(wks[i].Signal);
     Exit(0);
