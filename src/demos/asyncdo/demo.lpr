@@ -92,35 +92,36 @@ var
   i, n, c: Integer;
   pf: TPrimeFinder;
   et: TEpikTimer;
-  r: TRange;
+  rs: array of TRange;
+  s: Integer;
 begin
-  n := 500000;
+  if ParamCount <> 2 then begin
+    WriteLn('USAGE: ', ChangeFileExt(ExtractFileName(ParamStr(0)), ''),
+      ' <threads> <target>');
+    Exit;
+  end;
+  n := StrToIntDef(ParamStr(2), 500000);
+  c := StrToIntDef(ParamStr(1), 4);
   et := TEpikTimer.Create(nil);
   pf := TPrimeFinder.Create;
-  WriteLn('Non-parallel calculation (benchmark)...');
-  r.min := 3; r.max := n;
-  et.Start;
-  pf.CheckPrime(@r);
-  et.Stop;
-  WriteLn('Time elapsed: ', et.Elapsed:0:3);
-  pf.Report;
-  pf.Save('primes0.txt');
-  pf.Wipe;
-{
-  c := 1;
-  WriteLn('Parallel calcuation, threads: ', c);
+  WriteLn('Parallel calcuation, threads: ', c, ', target: ', n);
+  SetLength(rs, c);
+  s := round(n / c);
+  for i := 0 to Length(rs) - 1 do with rs[i] do begin
+    min := i * s + 1;
+    if min < 3 then min := 3;
+    max := i * s + s;
+    if max > n then max := n;
+  end;
   ad := TAsyncDo.Create(c, @pf.CheckPrime);
   et.Clear;
   et.Start;
-  i := 3;
-  while i <= n do if ad.Call(i) >= 0 then Inc(i) else Sleep(1);
+  for i := 0 to Length(rs) - 1 do ad.Call(@rs[i]);
   ad.Finish;
   et.Stop;
   WriteLn('Time elapsed: ', et.Elapsed:0:3);
   pf.Report;
-  pf.Save('primes' + IntToStr(c) + '.txt');
   ad.Free;
-}
   pf.Free;
   et.Free;
 end.
