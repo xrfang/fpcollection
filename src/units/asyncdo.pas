@@ -133,7 +133,11 @@ destructor TAsyncDo.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to Length(wks) - 1 do wks[i].Free;
+  for i := 0 to Length(wks) - 1 do with wks[i] do begin
+    Terminate;
+    RTLEventSetEvent(Signal);
+    Free;
+  end;
 end;
 
 end.
