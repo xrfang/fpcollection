@@ -2,7 +2,7 @@ unit asyncdo;
 {$mode objfpc}{$H+}
 interface
 
-uses Classes;
+uses {$IFDEF UNIX}cthreads,{$ENDIF} Classes, SysUtils;
 
 type
   TAsyncDo = class
@@ -27,6 +27,7 @@ type
   public
     constructor Create(workers: Integer);
     function Call(UserData: PtrUInt): Integer;
+    function Finish(timeout: Integer = 0; poll: Word = 500): Boolean;
     destructor Destroy; override;
   end;
 
@@ -90,6 +91,27 @@ begin
     Exit(0);
   end;
   Result := -1;
+end;
+
+function TAsyncDo.Finish(timeout: Integer; poll: Word): Boolean;
+var
+  i: Integer;
+  working, countdown: Boolean;
+begin
+  if poll < 100 then poll := 100;
+  if poll > 10000 then poll := 10000;
+  countdown := timeout > 0;
+  while True do begin
+    working := False;
+    for i := 0 to Length(wks) - 1 do if wks[i].Stat <> 0 then begin
+      working := True;
+      Break;
+    end;
+    if not working then Exit(True);
+    if timeout < 0 then Exit(False);
+    if countdown then timeout := timeout - poll;
+    Sleep(poll);
+  end;
 end;
 
 destructor TAsyncDo.Destroy;
