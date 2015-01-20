@@ -3,6 +3,9 @@ program demo;
 uses sysutils, vector, asyncdo, Classes, EpikTimer;
 
 type
+  TRange = record
+    min, max: Integer;
+  end;
   TPrimeFinder = class
   private
     cs: TRTLCriticalSection;
@@ -10,7 +13,7 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    procedure CheckPrime(n: PtrUInt);
+    procedure CheckPrime(r: Pointer);
     procedure Report;
     procedure Save(fn: string);
     procedure Wipe;
@@ -28,14 +31,26 @@ begin
   FPrimes.Free;
 end;
 
-procedure TPrimeFinder.CheckPrime(n: PtrUInt);
+procedure TPrimeFinder.CheckPrime(r: Pointer);
 var
-  i: Integer;
+  k, i: Integer;
+  isp: Boolean;
+  g: TRange;
 begin
-  for i := 2 to n - 1 do if n mod i = 0 then Exit;
-  EnterCriticalsection(cs);
-  FPrimes.Push(n);
-  LeaveCriticalsection(cs);
+  g := TRange(Pointer(r)^);
+  WriteLn('min=', g.min, ', max=', g.max);
+  for k := g.min to g.max do begin
+    isp := True;
+    for i := 2 to k - 1 do if k mod i = 0 then begin
+      isp := False;
+      Break;
+    end;
+    if isp then begin
+      EnterCriticalsection(cs);
+      FPrimes.Push(k);
+      LeaveCriticalsection(cs);
+    end;
+  end;
 end;
 
 procedure TPrimeFinder.Report;
@@ -72,30 +87,26 @@ begin
   FPrimes.Clear;
 end;
 
-procedure Task(input: PtrUInt);
-begin
-  WriteLn('Working on task #', input);
-  Sleep(1000 * (Random(5) + 1));
-  WriteLn('Finished taske #', input);
-end;
-
 var
   ad: TAsyncDo;
   i, n, c: Integer;
   pf: TPrimeFinder;
   et: TEpikTimer;
+  r: TRange;
 begin
   n := 500000;
   et := TEpikTimer.Create(nil);
   pf := TPrimeFinder.Create;
   WriteLn('Non-parallel calculation (benchmark)...');
+  r.min := 3; r.max := n;
   et.Start;
-  for i := 3 to n do pf.CheckPrime(i);
+  pf.CheckPrime(@r);
   et.Stop;
   WriteLn('Time elapsed: ', et.Elapsed:0:3);
   pf.Report;
   pf.Save('primes0.txt');
   pf.Wipe;
+{
   c := 1;
   WriteLn('Parallel calcuation, threads: ', c);
   ad := TAsyncDo.Create(c, @pf.CheckPrime);
@@ -109,6 +120,7 @@ begin
   pf.Report;
   pf.Save('primes' + IntToStr(c) + '.txt');
   ad.Free;
+}
   pf.Free;
   et.Free;
 end.
