@@ -7,14 +7,14 @@ uses {$IFDEF UNIX}cthreads,{$ENDIF} Classes, SysUtils;
 type
   TAsyncDo = class
   private type
-    WorkerP = procedure(input: PtrUInt);
-    WorkerM = procedure(input: PtrUInt) of object;
+    WorkerP = procedure(input: Pointer);
+    WorkerM = procedure(input: Pointer) of object;
     Worker = class(TThread)
     private
       Signal: PRTLEvent;
       WorkLoad: PtrUInt;
       Doer: TAsyncDo;
-      Data: PtrUInt;
+      Data: Pointer;
       Stat: Integer;
     public
       constructor Create;
@@ -28,11 +28,11 @@ type
     HandlerM: WorkerM;
     procedure InitWorkers(n: Integer);
   protected
-    function IsWIP(Input, Data: PtrUInt): Boolean; virtual;
+    function IsWIP(Input, Data: Pointer): Boolean; virtual;
   public
     constructor Create(workers: Integer; handler: WorkerP);
     constructor Create(workers: Integer; handler: WorkerM);
-    function Call(UserData: PtrUInt): Integer;
+    function Call(UserData: Pointer): Integer;
     function Finish(timeout: Integer = 0; poll: Word = 500): Boolean;
     destructor Destroy; override;
   end;
@@ -62,7 +62,7 @@ begin
   inherited Destroy;
 end;
 
-function TAsyncDo.IsWIP(Input, Data: PtrUInt): Boolean;
+function TAsyncDo.IsWIP(Input, Data: Pointer): Boolean;
 begin
   Result := Input = Data;
 end;
@@ -90,11 +90,11 @@ begin
     wks[i] := Worker.Create;
     wks[i].Doer := Self;
     wks[i].Stat := 0;
-    wks[i].Data := 0;
+    wks[i].Data := nil;
   end;
 end;
 
-function TAsyncDo.Call(UserData: PtrUInt): Integer;
+function TAsyncDo.Call(UserData: Pointer): Integer;
 var
   i: Integer;
 begin
