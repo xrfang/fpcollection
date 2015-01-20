@@ -7,6 +7,8 @@ uses {$IFDEF UNIX}cthreads,{$ENDIF} Classes, SysUtils;
 type
   TAsyncDo = class
   private type
+    WorkerP = procedure(input: PtrUInt);
+    WorkerM = procedure(input: PtrUInt) of object;
     Worker = class(TThread)
     private
       Signal: PRTLEvent;
@@ -21,11 +23,15 @@ type
     end;
   private
     wks: array of Worker;
+    HType: Integer;
+    HandlerP: WorkerP;
+    HandlerM: WorkerM;
+    procedure InitWorkers(n: Integer);
   protected
     function IsWIP(Input, Data: PtrUInt): Boolean; virtual;
-    procedure Task(input: PtrUInt); virtual;
   public
-    constructor Create(workers: Integer);
+    constructor Create(workers: Integer; handler: WorkerP);
+    constructor Create(workers: Integer; handler: WorkerM);
     function Call(UserData: PtrUInt): Integer;
     function Finish(timeout: Integer = 0; poll: Word = 500): Boolean;
     destructor Destroy; override;
@@ -39,7 +45,7 @@ begin
     RTLeventWaitFor(Signal);
     if Terminated then Exit;
     RTLeventResetEvent(Signal);
-    Doer.Task(Data);
+    with Doer do if HType = 0 then HandlerP(Data) else HandlerM(Data);
     Stat := 0;
   end;
 end;
@@ -61,17 +67,26 @@ begin
   Result := Input = Data;
 end;
 
-procedure TAsyncDo.Task(input: PtrUInt);
+constructor TAsyncDo.Create(workers: Integer; handler: WorkerP);
 begin
-  (* empty *)
+  InitWorkers(workers);
+  HType := 0;
+  HandlerP := handler;
 end;
 
-constructor TAsyncDo.Create(workers: Integer);
+constructor TAsyncDo.Create(workers: Integer; handler: WorkerM);
+begin
+  InitWorkers(workers);
+  HType := 1;
+  HandlerM := handler;
+end;
+
+procedure TAsyncDo.InitWorkers(n: Integer);
 var
   i: Integer;
 begin
-  SetLength(wks, workers);
-  for i := 0 to workers - 1 do begin
+  SetLength(wks, n);
+  for i := 0 to n - 1 do begin
     wks[i] := Worker.Create;
     wks[i].Doer := Self;
     wks[i].Stat := 0;

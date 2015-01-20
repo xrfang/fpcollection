@@ -2,13 +2,7 @@ program demo;
 {$mode objfpc}{$H+}
 uses sysutils, asyncdo;
 
-type
-  TAsyncDemo = class(TAsyncDo)
-  protected
-    procedure Task(input: PtrUInt); override;
-  end;
-
-procedure TAsyncDemo.Task(input: PtrUInt);
+procedure Task(input: PtrUInt);
 begin
   WriteLn('Working on task #', input);
   Sleep(1000 * (Random(5) + 1));
@@ -16,15 +10,17 @@ begin
 end;
 
 var
-  ad: TAsyncDemo;
+  ad: TAsyncDo;
   i, n: Integer;
+
 begin
   Randomize;
-  ad := TAsyncDemo.Create(4);
+  ad := TAsyncDo.Create(4, @Task);
   for i := 0 to 10 do begin
     n := Random(10) + 1;
     WriteLn('Submitting task #', n, ' ... res=', ad.Call(n));
   end;
   ad.Finish;
+  ad.Free;
 end.
 
