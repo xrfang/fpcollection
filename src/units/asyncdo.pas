@@ -2,7 +2,7 @@ unit asyncdo;
 {$mode objfpc}{$H+}
 interface
 
-uses {$IFDEF UNIX}cthreads,{$ENDIF} Classes, SysUtils;
+uses Classes, SysUtils;
 
 type
   TAsyncDo = class

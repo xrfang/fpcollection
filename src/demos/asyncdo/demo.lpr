@@ -1,6 +1,7 @@
 program demo;
 {$mode objfpc}{$H+}
-uses sysutils, vector, asyncdo, Classes, EpikTimer;
+uses {$IFDEF UNIX}cthreads,{$ENDIF} sysutils, vector, asyncdo, Classes,
+  EpikTimer;
 
 type
   TRange = record
@@ -55,7 +56,8 @@ end;
 
 procedure TPrimeFinder.Report;
 var
-  i, c, s: LongWord;
+  i, c: Integer;
+  s: LongWord;
 begin
   FPrimes.Sort;
   WriteLn('# of primes found: ', FPrimes.Count);
