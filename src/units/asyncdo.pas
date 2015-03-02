@@ -123,7 +123,7 @@ begin
       Break;
     end;
     if not working then Exit(True);
-    if timeout <= 0 then Exit(False);
+    if timeout < 0 then Exit(False);
     if countdown then timeout := timeout - poll;
     Sleep(poll);
   end;
