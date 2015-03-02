@@ -4,6 +4,7 @@ uses {$IFDEF UNIX}cthreads,{$ENDIF} sysutils, vector, asyncdo, Classes,
   EpikTimer;
 
 type
+  PRange = ^TRange;
   TRange = record
     min, max: Integer;
   end;
@@ -14,10 +15,9 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+    procedure SyncTask(data: Pointer; stat: Integer);
     procedure CheckPrime(r: Pointer);
     procedure Report;
-    procedure Save(fn: string);
-    procedure Wipe;
   end;
 
 constructor TPrimeFinder.Create;
@@ -32,14 +32,22 @@ begin
   FPrimes.Free;
 end;
 
+procedure TPrimeFinder.SyncTask(data: Pointer; stat: Integer);
+var
+  r: TRange;
+begin
+  r := PRange(data)^;
+  WriteLn('Adding task: min=', r.min, ', max=', r.max, ', result=', stat);
+end;
+
 procedure TPrimeFinder.CheckPrime(r: Pointer);
 var
   k, i: Integer;
   isp: Boolean;
   g: TRange;
 begin
-  g := TRange(Pointer(r)^);
-  WriteLn('min=', g.min, ', max=', g.max);
+  g := PRange(r)^;
+  WriteLn('in thread #', ThreadID, ': min=', g.min, ', max=', g.max);
   for k := g.min to g.max do begin
     isp := True;
     for i := 2 to k - 1 do if k mod i = 0 then begin
@@ -69,26 +77,6 @@ begin
   WriteLn('Sum of all primes: ', s);
 end;
 
-procedure TPrimeFinder.Save(fn: string);
-var
-  i: Integer;
-  sl: TStrings;
-begin
-  FPrimes.Sort;
-  sl := TStringList.Create;
-  try
-    for i := 0 to FPrimes.Count - 1 do sl.Add(IntToStr(FPrimes[i]));
-    sl.SaveToFile(fn);
-  finally
-    sl.Free;
-  end;
-end;
-
-procedure TPrimeFinder.Wipe;
-begin
-  FPrimes.Clear;
-end;
-
 var
   ad: TAsyncDo;
   i, n, c: Integer;
@@ -115,9 +103,10 @@ begin
     max := i * s + s;
     if max > n then max := n;
   end;
-  ad := TAsyncDo.Create(c, @pf.CheckPrime);
+  ad := TAsyncDo.Create(c, @pf.CheckPrime, @pf.SyncTask);
   et.Clear;
   et.Start;
+  WriteLn('# of tasks: ', Length(rs));
   for i := 0 to Length(rs) - 1 do ad.Call(@rs[i]);
   ad.Finish;
   et.Stop;

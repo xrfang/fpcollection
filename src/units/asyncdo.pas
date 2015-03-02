@@ -7,6 +7,8 @@ uses Classes, SysUtils;
 type
   TAsyncDo = class
   private type
+    SyncerP = procedure(data: Pointer; stat: Integer);
+    SyncerM = procedure(data: Pointer; stat: Integer) of object;
     WorkerP = procedure(input: Pointer);
     WorkerM = procedure(input: Pointer) of object;
     Worker = class(TThread)
@@ -24,14 +26,17 @@ type
   private
     wks: array of Worker;
     HType: Integer;
+    SType: Integer;
     HandlerP: WorkerP;
     HandlerM: WorkerM;
+    SyncP: SyncerP;
+    SyncM: SyncerM;
     procedure InitWorkers(n: Integer);
   protected
     function IsWIP(Input, Data: Pointer): Boolean; virtual;
   public
-    constructor Create(workers: Integer; handler: WorkerP);
-    constructor Create(workers: Integer; handler: WorkerM);
+    constructor Create(workers: Integer; handler: WorkerP; sync: SyncerP = nil);
+    constructor Create(workers: Integer; handler: WorkerM; sync: SyncerM = nil);
     function Call(UserData: Pointer): Integer;
     function Finish(timeout: Integer = 0; poll: Word = 500): Boolean;
     destructor Destroy; override;
@@ -67,18 +72,28 @@ begin
   Result := Input = Data;
 end;
 
-constructor TAsyncDo.Create(workers: Integer; handler: WorkerP);
+constructor TAsyncDo.Create(workers: Integer; handler: WorkerP; sync: SyncerP);
 begin
   InitWorkers(workers);
   HType := 0;
   HandlerP := handler;
+  SType := 0;
+  if sync <> nil then begin
+    SyncP := sync;
+    SType := 1;
+  end;
 end;
 
-constructor TAsyncDo.Create(workers: Integer; handler: WorkerM);
+constructor TAsyncDo.Create(workers: Integer; handler: WorkerM; sync: SyncerM);
 begin
   InitWorkers(workers);
   HType := 1;
   HandlerM := handler;
+  SType := 0;
+  if sync <> nil then begin
+    SyncM := sync;
+    SType := 2;
+  end;
 end;
 
 procedure TAsyncDo.InitWorkers(n: Integer);
@@ -98,14 +113,22 @@ function TAsyncDo.Call(UserData: Pointer): Integer;
 var
   i: Integer;
 begin
-  for i := 0 to Length(wks) - 1 do if IsWIP(UserData, wks[i].Data) then Exit(1);
+  for i := 0 to Length(wks) - 1 do if IsWIP(UserData, wks[i].Data) then begin
+    if SType = 1 then SyncP(UserData, 1) else
+    if SType = 2 then SyncM(UserData, 1);
+    Exit(1);
+  end;
   for i := 0 to Length(wks) - 1 do if wks[i].Stat = 0 then begin
+    if SType = 1 then SyncP(UserData, 0) else
+    if SType = 2 then SyncM(UserData, 0);
     wks[i].Stat := 1;
     wks[i].Data := UserData;
     RTLeventSetEvent(wks[i].Signal);
     Exit(0);
   end;
-  Result := -1;
+  if SType = 1 then SyncP(UserData, -1) else
+  if SType = 2 then SyncM(UserData, -1);
+  Exit(-1);
 end;
 
 function TAsyncDo.Finish(timeout: Integer; poll: Word): Boolean;
