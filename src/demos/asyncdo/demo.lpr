@@ -60,6 +60,7 @@ begin
       LeaveCriticalsection(cs);
     end;
   end;
+  WriteLn('Thread finished: #', ThreadID);
 end;
 
 procedure TPrimeFinder.Report;
