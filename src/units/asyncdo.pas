@@ -24,6 +24,7 @@ type
       procedure Execute; override;
     end;
   private
+    cs: TRTLCriticalSection;
     wks: array of Worker;
     HType: Integer;
     SType: Integer;
@@ -100,6 +101,7 @@ procedure TAsyncDo.InitWorkers(n: Integer);
 var
   i: Integer;
 begin
+  InitCriticalSection(cs);
   SetLength(wks, n);
   for i := 0 to n - 1 do begin
     wks[i] := Worker.Create;
@@ -113,22 +115,27 @@ function TAsyncDo.Call(UserData: Pointer): Integer;
 var
   i: Integer;
 begin
-  for i := 0 to Length(wks) - 1 do if IsWIP(UserData, wks[i].Data) then begin
-    if SType = 1 then SyncP(UserData, 1) else
-    if SType = 2 then SyncM(UserData, 1);
-    Exit(1);
+  EnterCriticalsection(cs);
+  try
+    for i := 0 to Length(wks) - 1 do if IsWIP(UserData, wks[i].Data) then begin
+      if SType = 1 then SyncP(UserData, 1) else
+      if SType = 2 then SyncM(UserData, 1);
+      Exit(1);
+    end;
+    for i := 0 to Length(wks) - 1 do if wks[i].Stat = 0 then begin
+      if SType = 1 then SyncP(UserData, 0) else
+      if SType = 2 then SyncM(UserData, 0);
+      wks[i].Stat := 1;
+      wks[i].Data := UserData;
+      RTLeventSetEvent(wks[i].Signal);
+      Exit(0);
+    end;
+    if SType = 1 then SyncP(UserData, -1) else
+    if SType = 2 then SyncM(UserData, -1);
+    Exit(-1);
+  finally
+    LeaveCriticalsection(cs);
   end;
-  for i := 0 to Length(wks) - 1 do if wks[i].Stat = 0 then begin
-    if SType = 1 then SyncP(UserData, 0) else
-    if SType = 2 then SyncM(UserData, 0);
-    wks[i].Stat := 1;
-    wks[i].Data := UserData;
-    RTLeventSetEvent(wks[i].Signal);
-    Exit(0);
-  end;
-  if SType = 1 then SyncP(UserData, -1) else
-  if SType = 2 then SyncM(UserData, -1);
-  Exit(-1);
 end;
 
 function TAsyncDo.Finish(timeout: Integer; poll: Word): Boolean;
@@ -161,6 +168,7 @@ begin
     RTLEventSetEvent(Signal);
     Free;
   end;
+  DoneCriticalsection(cs);
 end;
 
 end.
