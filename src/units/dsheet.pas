@@ -179,7 +179,7 @@ end;
 
 procedure TDataSheet.SetMagnifier(AValue: Integer);
 begin
-  if (AValue <= 0) or (AValue > 50) or (FMagnifier = AValue) then Exit;
+  if (AValue < 0) or (AValue > 50) or (FMagnifier = AValue) then Exit;
   FMagnifier := AValue;
 end;
 
@@ -222,7 +222,8 @@ var
   s: Integer;
 begin
   if Length(series) = 0 then Exit(False);
-  FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
+  if FMagnifier = 0 then FSpan := ARect.Right - ARect.Left
+  else FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
   if FSpan <= 0 then Exit(False);
   if FAnchor < 0 then FAnchor += Rows;
   if FAnchor < FSpan then FAnchor := FSpan;
@@ -245,7 +246,8 @@ end;
 
 function TDataSheet.HMap(ARect: TRect; p: Integer): Integer;
 begin
-  Result := ARect.Left + (2 * p + 1) * FMagnifier;
+  if FMagnifier = 0 then Exit(ARect.Left + p + 1)
+  else Exit(ARect.Left + (2 * p + 1) * FMagnifier);
 end;
 
 function TDataSheet.VMap(ARect: TRect; Min, Max, p: Real): Integer;
@@ -294,8 +296,9 @@ begin
   lc := StrToIntDef(cut(s), 3);
   cc := StrToIntDef(cut(s), 4);
   s := opts.Get('style', '+');
-  if s = '+' then w := FMagnifier div 2
-  else            w := FMagnifier - 1;
+  if FMagnifier < 2 then w := 1
+  else if s = '+' then   w := FMagnifier div 2
+  else                   w := FMagnifier - 1;
   first := FAnchor - FSpan + 1;
   if first < 0 then first := 0;
   with ACanvas do begin
@@ -343,7 +346,7 @@ var
   begin
     if style[1] <> '*' then Exit;
     r := w + 2;
-    if r > FMagnifier div 2 then r := FMagnifier div 2;
+    if (FMagnifier > 1) and (r > FMagnifier div 2) then r := FMagnifier div 2;
     with ACanvas do begin
       ps := Pen.Style;
       Pen.Style := psSolid;
@@ -359,7 +362,7 @@ begin
   color := CSSColor(opts.Get('color', '#000000'));
   style := opts.Get('style', '*-');
   w := ifthen(style = '=', 2, 1);
-  if w > FMagnifier div 2 then w := FMagnifier div 2;
+  if (FMagnifier > 0) and (w > FMagnifier div 2) then w := FMagnifier div 2;
   first := FAnchor - FSpan + 1;
   if first < 0 then first := 0;
   with ACanvas do begin
@@ -401,9 +404,9 @@ begin
     clrs[cl] := CSSColor(cut(s));
   until s = '';
   s := opts.Get('style', '+');
-  if      s = '-' then w := 0
-  else if s = '#' then w := FMagnifier - 1
-  else                 w := FMagnifier div 2;
+  if (s = '-') or (FMagnifier = 0) then w := 0
+  else if s = '#' then                  w := FMagnifier - 1
+  else                                  w := FMagnifier div 2;
   cl := Length(clrs);
   first := FAnchor - FSpan + 1;
   if first < 0 then first := 0;
@@ -447,7 +450,8 @@ var
   end;
 begin
   if Cols < 2 then Exit;
-  FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
+  if FMagnifier = 0 then FSpan := ARect.Right - ARect.Left
+  else FSpan := (ARect.Right - ARect.Left) div (FMagnifier * 2);
   if FSpan <= 0 then Exit;
   if FAnchor < 0 then FAnchor += Rows;
   if FAnchor < FSpan then FAnchor := FSpan;
@@ -698,7 +702,8 @@ begin
   if (r.Left = r.Right) or (r.Top = r.Bottom) then Exit;
   first := FAnchor - FSpan + 1;
   if first < 0 then first := 0;
-  X := trunc((px - r.Left) / FMagnifier / 2) + first;
+  if FMagnifier = 0 then X := px - r.Left + first
+  else X := trunc((px - r.Left) / FMagnifier / 2) + first;
   if X >= Rows then X := -1;
   Y := FMinY + (FMaxY - FMinY) * (r.Bottom - py) / (r.Bottom - r.Top);
 end;

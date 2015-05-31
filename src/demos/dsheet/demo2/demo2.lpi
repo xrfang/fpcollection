@@ -37,7 +37,6 @@
       <Unit0>
         <Filename Value="demo2.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="demo2"/>
       </Unit0>
       <Unit1>
         <Filename Value="unit1.pas"/>
@@ -55,7 +54,6 @@
       <Unit3>
         <Filename Value="../../../units/spainter.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="spainter"/>
       </Unit3>
     </Units>
   </ProjectOptions>
@@ -76,12 +74,6 @@
         </Win32>
       </Options>
     </Linking>
-    <Other>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">
