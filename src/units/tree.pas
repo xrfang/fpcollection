@@ -16,11 +16,11 @@ type
   protected
     function RLEncode(Value: QWord; Output: TStream): Integer;
     function RLDecode(Input: TStream; out Value: QWord): Integer;
-    procedure DoClone(var Target: TSelfType); virtual;
+    procedure DoClone(var {%H-}Target: TSelfType); virtual;
     procedure DoDestroy; virtual;
-    function DoCompare(Target: TSelfType; P: PtrUInt): Integer; virtual;
+    function DoCompare({%H-}Target: TSelfType; {%H-}P: PtrUInt): Integer; virtual;
     function DoPersist(out Ptr: Pointer): Integer; virtual;
-    procedure DoRestore(Ptr: Pointer; Size: QWord); virtual;
+    procedure DoRestore(Ptr: Pointer; {%H-}Size: QWord); virtual;
   public
     Data: T;
     property Child[Rank: Cardinal]: TTree read GetChild; default;
@@ -300,7 +300,7 @@ begin
   Value := 0;
   multiplier := 1;
   Complete := False;
-  while Input.Read(d, 1) > 0 do begin
+  while Input.Read(d{%H-}, 1) > 0 do begin
     Inc(Result);
     Value := Value + (d and $7F) * multiplier;
     multiplier := multiplier * 128;

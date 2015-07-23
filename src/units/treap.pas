@@ -36,7 +36,7 @@ type
     procedure ClearNode(Node: PNode);
   protected
     function DefaultComparator(Key: TKey; Node: PNode): Integer; virtual;
-    procedure Disposer(Node: PNode); virtual;
+    procedure Disposer({%H-}Node: PNode); virtual;
   public
     property Comparator: TComparator read FComparator write FComparator;
     property Count: Integer read GetCount;
