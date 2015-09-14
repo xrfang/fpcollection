@@ -34,6 +34,7 @@ type
     function Pop: T;
     function Push(AValue: T): Integer;
     function Shift: T;
+    function Seek(AValue: T; Reversed: Boolean = False): Integer; virtual;
     procedure Assign(Values: DataType; Head: Integer = 0; Tail: Integer = -1);
     procedure Clear; virtual;
     procedure Trim;
@@ -45,6 +46,7 @@ type
     procedure Swap(idx1, idx2: Integer; sync: PIntegerDynArray = nil); inline;
   public
     property Order: Integer read FOrder;
+    function Seek(AValue: T; Reversed: Boolean = False): Integer; override;
     procedure Sort(Reversed: Boolean = False; OldOrder: PIntegerDynArray = nil);
     procedure ReOrder(ord: TIntegerDynArray; Restore: Boolean = False);
   end;
@@ -69,6 +71,36 @@ type
 
 implementation
 uses math;
+
+function TSortableVector.Seek(AValue: T; Reversed: Boolean): Integer;
+var
+  _f, _l, _o, p: Integer;
+begin
+  if FOrder = 0 then Exit(inherited);
+  _f := FFirst; _l := FLast;
+  while True do begin
+    p := (_f + _l) div 2;
+    if (p = _f) or (p = _l) then Break;
+    if FData[p] = AValue then Break;
+    if FData[p] < AValue then _o := -1 else _o := 1;
+    if FOrder * _o > 0 then _f := p else _l := p;
+  end;
+  if FData[p] <> AValue then Exit(-1);
+  if Reversed then begin
+    while True do begin
+      Result := p;
+      Inc(p);
+      if (p > FLast) or (FData[p] <> AValue) then Break;
+    end;
+  end else begin
+    while True do begin
+      Result := p;
+      Dec(p);
+      if (p < FFirst) or (FData[p] <> AValue) then Break;
+    end;
+  end;
+  Result := Result - FFirst;
+end;
 
 function TDoubleVector.OnSort(v1, v2: Double): Integer;
 begin
@@ -287,6 +319,18 @@ begin
     Result := FData[FFirst];
     Inc(FFirst);
   end else Result := FDefault;
+end;
+
+function TVector.Seek(AValue: T; Reversed: Boolean): Integer;
+var
+  i: Integer;
+begin
+  Result := -1;
+  if Reversed then begin
+    for i := FLast downto FFirst do if FData[i] = AValue then Exit(i - FFirst);
+  end else begin
+    for i := FFirst to FLast do if FData[i] = AValue then Exit(i - FFirst);
+  end;
 end;
 
 procedure TVector.Unshift(AValue: T);
