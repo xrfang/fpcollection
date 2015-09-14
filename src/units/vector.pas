@@ -56,6 +56,10 @@ type
   protected
     function OnSort(v1, v2: Double): Integer; override;
   end;
+  TDateTimeVector = class(specialize TSortableVector<TDateTime>)
+  protected
+    function OnSort(v1, v2: TDateTime): Integer; override;
+  end;
   TStringVector = class(specialize TSortableVector<string>)
   protected
     function OnSort(v1, v2: string): Integer; override;
@@ -67,6 +71,16 @@ implementation
 uses math;
 
 function TDoubleVector.OnSort(v1, v2: Double): Integer;
+begin
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function TDateTimeVector.OnSort(v1, v2: TDateTime): Integer;
 begin
   if v1 < v2 then
     Result := -1
