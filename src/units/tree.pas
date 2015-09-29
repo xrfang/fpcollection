@@ -35,6 +35,7 @@ type
     function FirstChild: TTree;
     function FirstDescendant: TTree;
     function FirstSibling: TTree;
+    function Height: Cardinal;
     function LastChild: TTree;
     function LastDescendant: TTree;
     function LastSibling: TTree;
@@ -193,6 +194,19 @@ function TTree.FirstSibling: TTree;
 begin
   if FParent = nil then Exit(nil);
   Result := FParent.FirstChild;
+end;
+
+function TTree.Height: Cardinal;
+var
+  i, hx, hc: Integer;
+begin
+  Result := 1;
+  hx := 0;
+  for i := 0 to FItems.Count - 1 do begin
+    hc := TSelfType(FItems[i]).Height;
+    if hc > hx then hx := hc;
+  end;
+  Result := Result + hx;
 end;
 
 function TTree.Rank: Cardinal;

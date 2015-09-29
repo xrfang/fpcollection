@@ -7,6 +7,7 @@ type
 
 procedure PrintTree(root: TStringTree);
 begin
+  WriteLn('Height of tree: ', root.Height);
   WriteLn('Iterating through all nodes...');
   while root <> nil do begin
     WriteLn(Format('%s[%d] %s', [StringOfChar(' ', root.Level * 2), root.Rank, root.Data]));
