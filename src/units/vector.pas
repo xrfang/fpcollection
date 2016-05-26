@@ -42,7 +42,7 @@ type
   end;
   generic TSortableVector<T> = class(specialize TVector<T>)
   protected
-    function OnSort({%H-}v1, {%H-}v2: T): Integer; virtual;
+    function OnSort(v1, v2: T): Integer; virtual;
     procedure Swap(idx1, idx2: Integer; sync: PIntegerDynArray = nil); inline;
   public
     property Order: Integer read FOrder;
@@ -50,22 +50,11 @@ type
     procedure Sort(Reversed: Boolean = False; OldOrder: PIntegerDynArray = nil);
     procedure ReOrder(ord: TIntegerDynArray; Restore: Boolean = False);
   end;
-  TIntegerVector = class(specialize TSortableVector<Integer>)
-  protected
-    function OnSort(v1, v2: Integer): Integer; override;
-  end;
-  TDoubleVector = class(specialize TSortableVector<Double>)
-  protected
-    function OnSort(v1, v2: Double): Integer; override;
-  end;
-  TDateTimeVector = class(specialize TSortableVector<TDateTime>)
-  protected
-    function OnSort(v1, v2: TDateTime): Integer; override;
-  end;
-  TStringVector = class(specialize TSortableVector<string>)
-  protected
-    function OnSort(v1, v2: string): Integer; override;
-  end;
+  TIntegerVector = specialize TSortableVector<Integer>;
+  TDoubleVector = specialize TSortableVector<Double>;
+  TDateTimeVector = specialize TSortableVector<TDateTime>;
+  TQWordVector = specialize TSortableVector<QWord>;
+  TStringVector = specialize TSortableVector<string>;
   TObjectVector = specialize TVector<TObject>;
   TPointerVector = specialize TVector<Pointer>;
 
@@ -100,46 +89,6 @@ begin
     end;
   end;
   Result := Result - FFirst;
-end;
-
-function TDoubleVector.OnSort(v1, v2: Double): Integer;
-begin
-  if v1 < v2 then
-    Result := -1
-  else if v1 > v2 then
-    Result := 1
-  else
-    Result := 0;
-end;
-
-function TDateTimeVector.OnSort(v1, v2: TDateTime): Integer;
-begin
-  if v1 < v2 then
-    Result := -1
-  else if v1 > v2 then
-    Result := 1
-  else
-    Result := 0;
-end;
-
-function TStringVector.OnSort(v1, v2: string): Integer;
-begin
-  if v1 < v2 then
-    Result := -1
-  else if v1 > v2 then
-    Result := 1
-  else
-    Result := 0;
-end;
-
-function TIntegerVector.OnSort(v1, v2: Integer): Integer;
-begin
-  if v1 < v2 then
-    Result := -1
-  else if v1 > v2 then
-    Result := 1
-  else
-    Result := 0;
 end;
 
 procedure TSortableVector.Sort(Reversed: Boolean; OldOrder: PIntegerDynArray);
@@ -195,7 +144,12 @@ end;
 
 function TSortableVector.OnSort(v1, v2: T): Integer;
 begin
-  Result := 0;
+  if v1 < v2 then
+    Result := -1
+  else if v1 > v2 then
+    Result := 1
+  else
+    Result := 0;
 end;
 
 procedure TSortableVector.Swap(idx1, idx2: Integer; sync: PIntegerDynArray);
